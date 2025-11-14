@@ -1,8 +1,11 @@
 use axum::{Router, routing::get};
 use dotenvy::dotenv;
-use sqlx::PgPool;
 use tracing::info;
 use tracing_subscriber::EnvFilter;
+
+use crate::database::Database;
+
+mod database;
 
 pub type Result<T> = color_eyre::Result<T>;
 
@@ -13,27 +16,6 @@ pub struct AppConfig {
 #[derive(Clone)]
 pub struct AppState {
     pub db: Database,
-}
-
-#[derive(Clone)]
-pub struct Database {
-    db: PgPool,
-}
-
-impl Database {
-    pub async fn new(db_url: &str) -> Result<Self> {
-        let db = PgPool::connect(db_url).await?;
-        sqlx::migrate!("./migrations").run(&db).await?;
-
-        Ok(Self { db })
-    }
-
-    pub async fn list_weekends(&self) -> Result<()> {
-        let data = sqlx::query!("SELECT * FROM race_weekend")
-            .fetch_all(&self.db)
-            .await?;
-        Ok(())
-    }
 }
 
 async fn hello_world() -> &'static str {
