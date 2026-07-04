@@ -107,7 +107,11 @@ fn race_sessions(race: &f1db::Race) -> Vec<(SessionType, Option<&str>, Option<&s
             race.qualifying_date.as_deref(),
             race.qualifying_time.as_deref(),
         ),
-        (SessionType::Race, Some(race.date.as_str()), race.time.as_deref()),
+        (
+            SessionType::Race,
+            Some(race.date.as_str()),
+            race.time.as_deref(),
+        ),
     ]
 }
 
@@ -137,11 +141,7 @@ async fn download_f1db_snapshot() -> Result<Vec<u8>> {
 
     let asset_url = release["assets"]
         .as_array()
-        .and_then(|assets| {
-            assets
-                .iter()
-                .find(|asset| asset["name"] == F1DB_ASSET_NAME)
-        })
+        .and_then(|assets| assets.iter().find(|asset| asset["name"] == F1DB_ASSET_NAME))
         .and_then(|asset| asset["browser_download_url"].as_str())
         .ok_or("f1db latest release is missing the f1db-json-splitted.zip asset")?;
 

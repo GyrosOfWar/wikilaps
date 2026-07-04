@@ -12,6 +12,14 @@ pub enum SessionType {
     Race,
 }
 
+#[derive(Debug, Clone, Copy, sqlx::Type)]
+#[sqlx(type_name = "vote_type", rename_all = "PascalCase")]
+pub enum VoteType {
+    FullRace,
+    RaceIn30,
+    Highlights,
+}
+
 #[derive(Debug)]
 pub struct RaceWeekend {
     pub id: i64,
@@ -105,5 +113,205 @@ impl Database {
         .await?;
 
         Ok(())
+    }
+
+    pub async fn insert_vote(
+        &self,
+        user_id: &str,
+        session_id: i64,
+        vote_type: VoteType,
+    ) -> Result<()> {
+        sqlx::query!(
+            "INSERT INTO votes (vote_type, user_identifier, session_id) 
+                VALUES ($1, $2, $3)
+            ON CONFLICT (user_identifier, session_id) DO NOTHING",
+            vote_type as _,
+            user_id,
+            session_id,
+        )
+        .execute(&self.db)
+        .await?;
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use jiff::Timestamp as JiffTimestamp;
+    use jiff::civil::date;
+    use sqlx::PgPool;
+
+    fn db(pool: PgPool) -> Database {
+        Database { db: pool }
+    }
+
+    async fn seed_weekend(db: &Database, year: i32, round: i32) -> i64 {
+        db.upsert_race_weekend(
+            year,
+            round,
+            "Monza",
+            "Autodromo Nazionale Monza",
+            "ITA",
+            jiff_sqlx::Date::from(date(year as i16, 9, round as i8)),
+        )
+        .await
+        .unwrap()
+    }
+
+    #[sqlx::test]
+    async fn list_weekends_empty(pool: PgPool) {
+        let db = db(pool);
+        let weekends = db.list_weekends().await.unwrap();
+        assert!(weekends.is_empty());
+    }
+
+    #[sqlx::test]
+    async fn list_weekends_orders_by_start_date_desc(pool: PgPool) {
+        let db = db(pool);
+        seed_weekend(&db, 2023, 1).await;
+        seed_weekend(&db, 2024, 1).await;
+
+        let weekends = db.list_weekends().await.unwrap();
+        assert_eq!(weekends.len(), 2);
+        assert_eq!(weekends[0].year, 2024);
+        assert_eq!(weekends[1].year, 2023);
+    }
+
+    #[sqlx::test]
+    async fn upsert_race_weekend_inserts_new_row(pool: PgPool) {
+        let db = db(pool);
+        let id = seed_weekend(&db, 2024, 1).await;
+
+        let weekends = db.list_weekends().await.unwrap();
+        assert_eq!(weekends.len(), 1);
+        assert_eq!(weekends[0].id, id);
+        assert_eq!(weekends[0].location, "Monza");
+    }
+
+    #[sqlx::test]
+    async fn upsert_race_weekend_updates_on_conflict(pool: PgPool) {
+        let db = db(pool);
+        let id = seed_weekend(&db, 2024, 1).await;
+
+        let updated_id = db
+            .upsert_race_weekend(
+                2024,
+                1,
+                "Imola",
+                "Autodromo Enzo e Dino Ferrari",
+                "ITA",
+                jiff_sqlx::Date::from(date(2024, 9, 1)),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(id, updated_id);
+
+        let weekends = db.list_weekends().await.unwrap();
+        assert_eq!(weekends.len(), 1);
+        assert_eq!(weekends[0].location, "Imola");
+    }
+
+    #[sqlx::test]
+    async fn upsert_session_inserts_new_row(pool: PgPool) {
+        let db = db(pool);
+        let weekend_id = seed_weekend(&db, 2024, 1).await;
+
+        db.upsert_session(
+            weekend_id,
+            SessionType::Race,
+            jiff_sqlx::Timestamp::from("2024-09-01T13:00:00Z".parse::<JiffTimestamp>().unwrap()),
+        )
+        .await
+        .unwrap();
+
+        let count: i64 = sqlx::query_scalar!("SELECT count(*) FROM session")
+            .fetch_one(&db.db)
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(count, 1);
+    }
+
+    #[sqlx::test]
+    async fn upsert_session_is_idempotent_on_conflict(pool: PgPool) {
+        let db = db(pool);
+        let weekend_id = seed_weekend(&db, 2024, 1).await;
+        let start_time =
+            jiff_sqlx::Timestamp::from("2024-09-01T13:00:00Z".parse::<JiffTimestamp>().unwrap());
+
+        db.upsert_session(weekend_id, SessionType::Race, start_time)
+            .await
+            .unwrap();
+        db.upsert_session(weekend_id, SessionType::Race, start_time)
+            .await
+            .unwrap();
+
+        let count: i64 = sqlx::query_scalar!("SELECT count(*) FROM session")
+            .fetch_one(&db.db)
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(count, 1);
+    }
+
+    #[sqlx::test]
+    async fn insert_vote_inserts_new_row(pool: PgPool) {
+        let db = db(pool);
+        let weekend_id = seed_weekend(&db, 2024, 1).await;
+        db.upsert_session(
+            weekend_id,
+            SessionType::Race,
+            jiff_sqlx::Timestamp::from("2024-09-01T13:00:00Z".parse::<JiffTimestamp>().unwrap()),
+        )
+        .await
+        .unwrap();
+        let session_id: i64 = sqlx::query_scalar!("SELECT id FROM session")
+            .fetch_one(&db.db)
+            .await
+            .unwrap();
+
+        db.insert_vote("user-1", session_id, VoteType::Highlights)
+            .await
+            .unwrap();
+
+        let count: i64 = sqlx::query_scalar!("SELECT count(*) FROM votes")
+            .fetch_one(&db.db)
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(count, 1);
+    }
+
+    #[sqlx::test]
+    async fn insert_vote_ignores_duplicate_vote(pool: PgPool) {
+        let db = db(pool);
+        let weekend_id = seed_weekend(&db, 2024, 1).await;
+        db.upsert_session(
+            weekend_id,
+            SessionType::Race,
+            jiff_sqlx::Timestamp::from("2024-09-01T13:00:00Z".parse::<JiffTimestamp>().unwrap()),
+        )
+        .await
+        .unwrap();
+        let session_id: i64 = sqlx::query_scalar!("SELECT id FROM session")
+            .fetch_one(&db.db)
+            .await
+            .unwrap();
+
+        db.insert_vote("user-1", session_id, VoteType::Highlights)
+            .await
+            .unwrap();
+        db.insert_vote("user-1", session_id, VoteType::FullRace)
+            .await
+            .unwrap();
+
+        let count: i64 = sqlx::query_scalar!("SELECT count(*) FROM votes")
+            .fetch_one(&db.db)
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(count, 1);
     }
 }
