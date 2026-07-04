@@ -5,7 +5,7 @@ use sqlx::PgPool;
 // TODO don't directly serialize database structs
 #[derive(Debug)]
 pub struct RaceWeekend {
- pub id: i64,
+    pub id: i64,
     pub year: i32,
     pub location: String,
     pub circuit_name: String,
@@ -29,7 +29,9 @@ impl Database {
     pub async fn list_weekends(&self) -> Result<Vec<RaceWeekend>> {
         let data = sqlx::query_as!(
             RaceWeekend,
-            "SELECT id, year, location, circuit_name, country_key, start_date FROM race_weekend"
+            r#"SELECT id, year, location, circuit_name, country_key, 
+                      start_date as "start_date: jiff_sqlx::Date" 
+                FROM race_weekend"#
         )
         .fetch_all(&self.db)
         .await?;
