@@ -3,7 +3,8 @@ CREATE TABLE race_weekend (
     year INT NOT NULL,
     location VARCHAR NOT NULL,
     circuit_name VARCHAR NOT NULL,
-    country_key VARCHAR NOT NULL
+    country_key VARCHAR NOT NULL,
+    start_date DATE NOT NULL
 );
 
 CREATE TYPE session_type AS ENUM ('FreePractice', 'SprintQualification', 'SprintRace', 'Qualifying', 'Race');

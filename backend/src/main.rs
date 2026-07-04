@@ -1,13 +1,15 @@
-use axum::{Router, routing::get};
+use axum::{Json, Router, extract::State, routing::get};
 use dotenvy::dotenv;
 use tracing::info;
 use tracing_subscriber::EnvFilter;
 
-use crate::database::Database;
+use crate::{
+    database::{Database, RaceWeekend},
+    error::Result,
+};
 
 mod database;
-
-pub type Result<T> = color_eyre::Result<T>;
+mod error;
 
 pub struct AppConfig {
     pub database_url: String,
@@ -18,8 +20,10 @@ pub struct AppState {
     pub db: Database,
 }
 
-async fn hello_world() -> &'static str {
-    "hello, world!"
+#[axum::debug_handler]
+pub async fn list_weekends(state: State<AppState>) -> Result<Json<String>> {
+    let weekends = state.db.list_weekends().await?;
+    todo!()
 }
 
 #[tokio::main]
@@ -33,7 +37,7 @@ async fn main() -> Result<()> {
     let database = Database::new(&db_url).await?;
 
     let app = Router::new()
-        .route("/", get(hello_world))
+        .route("/api/race-weekends", get(list_weekends))
         .with_state(AppState { db: database });
 
     info!("Starting on port 13252");
