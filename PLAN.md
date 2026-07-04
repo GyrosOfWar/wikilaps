@@ -61,7 +61,6 @@ Goal: a clean, honest skeleton before adding features.
 - [ ] Introduce API response DTOs separate from DB row structs (resolve the `TODO don't directly serialize database structs`). e.g. `api::RaceWeekendResponse` built from `database::RaceWeekend`.
 - [ ] Implement `list_weekends` for real: return `Json<Vec<RaceWeekendResponse>>`, ordered by `year`, then round/start_date.
 - [ ] Add per-variant status mapping to `AppError` (e.g. `NotFound → 404`, `BadRequest/Validation → 400`, DB/migration → 500). Add variants as needed.
-- [ ] Add permissive CORS for local dev so the SvelteKit dev server can call the API (`tower-http` `CorsLayer`), or proxy via Vite — decide one (see Open questions).
 - [ ] Confirm `SQLX_OFFLINE` story: generate a `.sqlx` cache (`cargo sqlx prepare`) so builds don't require a live DB, and document it. (Currently none exists.)
 
 ## Phase 1 — Schema evolution (new migrations)
