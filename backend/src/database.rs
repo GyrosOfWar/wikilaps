@@ -12,7 +12,7 @@ pub enum SessionType {
     Race,
 }
 
-#[derive(Debug, Clone, Copy, sqlx::Type)]
+#[derive(Debug, Clone, Copy, sqlx::Type, serde::Serialize, serde::Deserialize)]
 #[sqlx(type_name = "vote_type", rename_all = "PascalCase")]
 pub enum VoteType {
     FullRace,

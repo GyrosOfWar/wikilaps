@@ -7,6 +7,7 @@ pub enum AppError {
     Database(sqlx::Error),
     Migration(sqlx::migrate::MigrateError),
     Validation(&'static str),
+    Unauthorized(&'static str),
 }
 
 impl AppError {
@@ -14,6 +15,7 @@ impl AppError {
         match self {
             AppError::Database(_) | AppError::Migration(_) => ErrorCategory::Database,
             AppError::Validation(_) => ErrorCategory::Validation,
+            AppError::Unauthorized(_) => ErrorCategory::Unauthorized,
         }
     }
 }
@@ -47,6 +49,7 @@ impl IntoResponse for AppError {
         let status_code = match category {
             ErrorCategory::Database => StatusCode::INTERNAL_SERVER_ERROR,
             ErrorCategory::Validation => StatusCode::BAD_REQUEST,
+            ErrorCategory::Unauthorized => StatusCode::UNAUTHORIZED,
         };
 
         (status_code, Json(JsonError { message, category })).into_response()
@@ -58,6 +61,7 @@ impl IntoResponse for AppError {
 pub enum ErrorCategory {
     Database,
     Validation,
+    Unauthorized,
 }
 
 #[derive(Serialize, Debug)]
