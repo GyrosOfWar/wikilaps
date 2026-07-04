@@ -1,8 +1,6 @@
 use crate::Result;
-use serde::Serialize;
 use sqlx::PgPool;
 
-// TODO don't directly serialize database structs
 #[derive(Debug)]
 pub struct RaceWeekend {
     pub id: i64,
@@ -11,6 +9,7 @@ pub struct RaceWeekend {
     pub circuit_name: String,
     pub country_key: String,
     pub start_date: jiff_sqlx::Date,
+    pub round: i32,
 }
 
 #[derive(Clone)]
@@ -30,8 +29,9 @@ impl Database {
         let data = sqlx::query_as!(
             RaceWeekend,
             r#"SELECT id, year, location, circuit_name, country_key, 
-                      start_date as "start_date: jiff_sqlx::Date" 
-                FROM race_weekend"#
+                      start_date as "start_date: jiff_sqlx::Date", round
+                FROM race_weekend
+                ORDER BY start_date DESC"#
         )
         .fetch_all(&self.db)
         .await?;

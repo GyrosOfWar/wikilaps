@@ -67,10 +67,10 @@ Goal: a clean, honest skeleton before adding features.
 
 Each item is a new timestamped migration in `backend/migrations/` (never edit the applied init migration).
 
-- [ ] **Unique vote per user+session:** `ALTER TABLE votes ADD CONSTRAINT votes_user_session_unique UNIQUE (user_identifier, session_id);` — enables upsert and prevents trivial double-votes.
-- [ ] **Add `round` to `race_weekend`** (`INT`, the round number within the season) for stable ordering and display ("Round 12 — Silverstone").
+- [x] **Unique vote per user+session:** `ALTER TABLE votes ADD CONSTRAINT votes_user_session_unique UNIQUE (user_identifier, session_id);` — enables upsert and prevents trivial double-votes.
+- [x] **Add `round` to `race_weekend`** (`INT`, the round number within the season) for stable ordering and display ("Round 12 — Silverstone").
 - [ ] **Indexes:** index `session(weekend_id)` and `votes(session_id)` for the aggregation/listing queries.
-- [ ] **(Optional) `created_at`/`updated_at`** on `votes` (`TIMESTAMPTZ DEFAULT now()`) for basic abuse analysis and vote-change tracking.
+- [x] **(Optional) `created_at`/`updated_at`** on `votes` (`TIMESTAMPTZ DEFAULT now()`) for basic abuse analysis and vote-change tracking.
 - [ ] **(Optional) session display name/number** if we want "FP1/FP2/FP3" distinctions (currently `FreePractice` can't distinguish practice sessions). Decide whether to add a `session_number SMALLINT` or richer enum (see Open questions).
 
 ## Phase 2 — Anonymous identity & anti-double-vote
@@ -125,7 +125,7 @@ Goal: spoiler-free browsing + voting UI.
 - [ ] Basic responsive styling with Tailwind v4 (already configured). Flag rendering from `country_key`.
 
 ## Phase 6 — Polish, ops, and later
-
+n
 - [ ] Tests: backend integration tests for vote upsert + aggregation (sqlx test harness against a test DB); a couple of frontend component tests if a test setup is added.
 - [ ] Deployment: containerize backend (`adapter-node` already on frontend), env config for `DATABASE_URL`, run migrations on startup (already wired).
 - [ ] Observability: expand `tracing`, request logging.
