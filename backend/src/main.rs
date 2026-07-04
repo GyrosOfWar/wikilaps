@@ -2,10 +2,7 @@ use axum::{Router, routing::get};
 use dotenvy::dotenv;
 use tracing::info;
 use tracing_subscriber::EnvFilter;
-
-use wikilaps_backend::{
-    config::AppConfig, database::Database, error::Result, routes, routes::AppState,
-};
+use wikilaps::{config::AppConfig, database::Database, error::Result, routes, routes::AppState};
 
 #[tokio::main]
 async fn main() -> Result<()> {
