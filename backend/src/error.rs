@@ -8,6 +8,14 @@ pub enum AppError {
     Migration(sqlx::migrate::MigrateError),
 }
 
+impl AppError {
+    pub fn category(&self) -> ErrorCategory {
+        match self {
+            AppError::Database(_) | AppError::Migration(_) => ErrorCategory::Database,
+        }
+    }
+}
+
 impl From<sqlx::Error> for AppError {
     fn from(value: sqlx::Error) -> Self {
         AppError::Database(value)
@@ -26,13 +34,21 @@ impl IntoResponse for AppError {
 
         let status_code = StatusCode::INTERNAL_SERVER_ERROR;
         let message = format!("{self:?}");
+        let category = self.category();
 
-        (status_code, Json(JsonError { message })).into_response()
+        (status_code, Json(JsonError { message, category })).into_response()
     }
+}
+
+#[derive(Serialize, Debug, Clone, Copy)]
+#[serde(rename_all = "kebab-case")]
+pub enum ErrorCategory {
+    Database,
 }
 
 #[derive(Serialize, Debug)]
 pub struct JsonError {
+    pub category: ErrorCategory,
     pub message: String,
 }
 
