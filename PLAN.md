@@ -90,17 +90,17 @@ Goal: give each browser a stable-ish `user_identifier` and make casual double-vo
 
 Goal: populate `race_weekend` + `session` for the current F1 season (schedule only — no results).
 
-- [ ] **Choose a data source** (see Open questions for the tradeoff):
+- [x] **Choose a data source** (see Open questions for the tradeoff):
   - **f1db** (https://github.com/f1db/f1db) — comprehensive, MIT/CC-licensed, downloadable as CSV/JSON/SQL/SQLite. Great for structured season + circuit data. Verify it carries per-**session** start times for the *current* season (its strength is historical/results data).
   - **Jolpica-F1** (Ergast successor, REST API) — good for current-season schedules incl. session times.
   - **OpenF1** (https://openf1.org) — live/session-oriented, good session timing detail.
-- [ ] Write a **seeder** as a separate cargo binary (`backend/src/bin/seed.rs`) that:
+- [x] Write a **seeder** as a separate cargo binary (`backend/src/bin/seed.rs`) that:
   - Fetches/reads the chosen source (vendored JSON file checked into repo, or fetched at run time).
   - Maps source rows → `race_weekend` (year, round, location, circuit_name, country_key, start_date) and `session` (weekend_id, session_type, start_time, end_time).
   - Is **idempotent** (upsert on a natural key, e.g. `(year, round)` for weekends) so re-running updates rather than duplicates. May need a unique constraint on `race_weekend(year, round)`.
   - Maps source session names → our `session_type` enum; decide handling for FP1/2/3 collapsing into `FreePractice`.
 - [ ] Prefer a **vendored snapshot** (commit the season JSON under `backend/data/`) over live-fetch, so seeding is reproducible and offline-friendly. Add a make/script target to refresh it.
-- [ ] Populate `country_key` with something the frontend can turn into a flag (ISO country code or emoji-flag key).
+- [x] Populate `country_key` with something the frontend can turn into a flag (ISO country code or emoji-flag key).
 
 ## Phase 4 — Voting & results API
 

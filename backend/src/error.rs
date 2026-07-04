@@ -6,12 +6,14 @@ use tracing::error;
 pub enum AppError {
     Database(sqlx::Error),
     Migration(sqlx::migrate::MigrateError),
+    Validation(&'static str),
 }
 
 impl AppError {
     pub fn category(&self) -> ErrorCategory {
         match self {
             AppError::Database(_) | AppError::Migration(_) => ErrorCategory::Database,
+            AppError::Validation(_) => ErrorCategory::Validation,
         }
     }
 }
@@ -40,9 +42,12 @@ impl IntoResponse for AppError {
     fn into_response(self) -> axum::response::Response {
         error!("Error during request handling: {self:?}");
 
-        let status_code = StatusCode::INTERNAL_SERVER_ERROR;
         let message = format!("{self:?}");
         let category = self.category();
+        let status_code = match category {
+            ErrorCategory::Database => StatusCode::INTERNAL_SERVER_ERROR,
+            ErrorCategory::Validation => StatusCode::BAD_REQUEST,
+        };
 
         (status_code, Json(JsonError { message, category })).into_response()
     }
@@ -52,6 +57,7 @@ impl IntoResponse for AppError {
 #[serde(rename_all = "kebab-case")]
 pub enum ErrorCategory {
     Database,
+    Validation,
 }
 
 #[derive(Serialize, Debug)]

@@ -1,5 +1,8 @@
-use crate::{database::RaceWeekend, error::Result};
-use axum::{Json, extract::State};
+use crate::{
+    database::RaceWeekend,
+    error::{AppError, Result},
+};
+use axum::{Json, extract::State, http::HeaderMap};
 use jiff::civil::Date;
 use serde::Serialize;
 
@@ -46,4 +49,9 @@ pub async fn list_weekends(state: State<AppState>) -> Result<Json<Vec<RaceWeeken
         .collect();
 
     Ok(Json(weekends))
+}
+
+#[axum::debug_handler]
+pub async fn create_vote(headers: HeaderMap) -> Result<()> {
+    Ok(())
 }
