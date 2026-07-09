@@ -8,12 +8,32 @@
   import LanguageSwitcher from "$lib/components/LanguageSwitcher.svelte";
   import { Temporal } from "temporal-polyfill";
   import { formatDate } from "$lib/date-time.js";
+  import type { SessionResponse } from "$lib/api.js";
+  import { invalidateAll } from "$app/navigation";
 
   const { data } = $props();
+
+  type VoteType = "FullRace" | "RaceIn30" | "Highlights";
+
+  async function submitVote(sessionId: number, vote: VoteType) {
+    await fetch("/api/vote", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionId, vote }),
+    });
+    await invalidateAll();
+  }
 
   function isInFuture(date: string): boolean {
     const until = Temporal.PlainDate.from(date).until(Temporal.Now.plainDateISO());
     return until.total("second") < 0;
+  }
+
+  function canVote(session: SessionResponse) {
+    const start = Temporal.Instant.from(session.startTime);
+    const end = start.add("PT2H");
+
+    return Temporal.Now.instant().until(end).total("second") < 0;
   }
 </script>
 
@@ -34,6 +54,7 @@
   {#each data.weekends as weekend (weekend.id)}
     {@const future = isInFuture(weekend.startDate)}
     <div
+      id="round-{weekend.round}"
       aria-disabled={future}
       class={[
         "card border border-surface-200-800 card-hover divide-surface-200-800 block divide-y overflow-hidden",
@@ -42,7 +63,6 @@
           : "preset-filled-surface-100-900",
       ]}
     >
-      <header></header>
       <article class="space-y-4 p-4">
         <div>
           <h2 class="h6 mb-2">
@@ -55,6 +75,7 @@
           {#if !future}
             <Accordion>
               {#each weekend.sessions as session, i (session.id)}
+                {@const interactive = canVote(session)}
                 {#if i !== 0}
                   <hr class="hr" />
                 {/if}
@@ -75,7 +96,12 @@
                     {#snippet element(attributes)}
                       {#if !attributes.hidden}
                         <div {...attributes} transition:slide={{ duration: 150 }} class="pb-3">
-                          <VoteResults sessionType={session.sessionType} votes={session.votes} />
+                          <VoteResults
+                            {interactive}
+                            sessionType={session.sessionType}
+                            votes={session.votes}
+                            onSubmit={(vote) => submitVote(session.id, vote)}
+                          />
                         </div>
                       {/if}
                     {/snippet}

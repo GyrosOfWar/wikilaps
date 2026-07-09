@@ -12,5 +12,6 @@
   "vote_type_race_in_30": "Rennen in 30 Minuten",
   "vote_type_highlights": "Highlights",
   "poll_total_votes": "{n} Stimmen",
-  "poll_no_votes": "Noch keine Stimmen"
+  "poll_no_votes": "Noch keine Stimmen",
+  "vote_submit": "Abstimmen"
 }
