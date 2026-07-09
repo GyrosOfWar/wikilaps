@@ -2,7 +2,7 @@ use crate::error::Result;
 
 use sqlx::PgPool;
 
-#[derive(Debug, Clone, Copy, sqlx::Type)]
+#[derive(Debug, Clone, Copy, sqlx::Type, serde::Serialize)]
 #[sqlx(type_name = "session_type", rename_all = "PascalCase")]
 pub enum SessionType {
     FreePractice,
@@ -30,6 +30,24 @@ pub struct RaceWeekend {
     pub country_key: String,
     pub start_date: jiff_sqlx::Date,
     pub round: i32,
+    pub sessions: Vec<SessionWithVotes>,
+}
+
+#[derive(Debug)]
+pub struct SessionWithVotes {
+    pub id: i64,
+    pub session_type: SessionType,
+    pub start_time: jiff_sqlx::Timestamp,
+    pub end_time: Option<jiff_sqlx::Timestamp>,
+    pub votes: VoteCounts,
+}
+
+/// Tally of votes for a single session, one count per `vote_type`.
+#[derive(Debug)]
+pub struct VoteCounts {
+    pub full_race: i64,
+    pub race_in_30: i64,
+    pub highlights: i64,
 }
 
 #[derive(Clone)]
@@ -44,24 +62,64 @@ impl Database {
 
         Ok(Self { db })
     }
-
     pub async fn list_weekends(&self, year: i32) -> Result<Vec<RaceWeekend>> {
-        let data = sqlx::query_as!(
-            RaceWeekend,
-            r#"SELECT r.id, r.year, r.location, r.circuit_name, r.country_key,
-                      r.start_date as "start_date: jiff_sqlx::Date", r.round,
-                      r.official_name
-
+        let rows = sqlx::query!(
+            r#"SELECT
+                    r.id AS weekend_id, r.year, r.location, r.circuit_name, r.country_key,
+                    r.start_date AS "start_date: jiff_sqlx::Date", r.round, r.official_name,
+                    s.id AS "session_id?",
+                    s.session_type AS "session_type?: SessionType",
+                    s.start_time AS "start_time?: jiff_sqlx::Timestamp",
+                    s.end_time AS "end_time?: jiff_sqlx::Timestamp",
+                    count(v.id) FILTER (WHERE v.vote_type = 'FullRace'::vote_type)   AS "full_race!",
+                    count(v.id) FILTER (WHERE v.vote_type = 'RaceIn30'::vote_type)   AS "race_in_30!",
+                    count(v.id) FILTER (WHERE v.vote_type = 'Highlights'::vote_type) AS "highlights!"
                 FROM race_weekend r
-                INNER JOIN session s ON s.weekend_id = r.id
-                WHERE year = $1
-                ORDER BY start_date ASC"#,
+                LEFT JOIN session s ON s.weekend_id = r.id
+                LEFT JOIN votes v ON v.session_id = s.id
+                WHERE r.year = $1
+                GROUP BY r.id, s.id
+                ORDER BY r.start_date ASC, r.id ASC, s.start_time ASC NULLS FIRST"#,
             year
         )
         .fetch_all(&self.db)
         .await?;
 
-        Ok(data)
+        let mut weekends: Vec<RaceWeekend> = Vec::new();
+        for row in rows {
+            if weekends.last().map(|w| w.id) != Some(row.weekend_id) {
+                weekends.push(RaceWeekend {
+                    id: row.weekend_id,
+                    year: row.year,
+                    location: row.location,
+                    circuit_name: row.circuit_name,
+                    country_key: row.country_key,
+                    start_date: row.start_date,
+                    round: row.round,
+                    official_name: row.official_name,
+                    sessions: Vec::new(),
+                });
+            }
+
+            // A null `session_id` means this weekend has no sessions (the LEFT
+            // JOIN produced a single all-null session row); skip it.
+            if let Some(session_id) = row.session_id {
+                let weekend = weekends.last_mut().expect("weekend pushed above");
+                weekend.sessions.push(SessionWithVotes {
+                    id: session_id,
+                    session_type: row.session_type.expect("session_id implies session_type"),
+                    start_time: row.start_time.expect("session_id implies start_time"),
+                    end_time: row.end_time,
+                    votes: VoteCounts {
+                        full_race: row.full_race,
+                        race_in_30: row.race_in_30,
+                        highlights: row.highlights,
+                    },
+                });
+            }
+        }
+
+        Ok(weekends)
     }
 
     /// Inserts a race weekend, or updates it in place if one with the same
@@ -187,15 +245,61 @@ mod tests {
     }
 
     #[sqlx::test]
-    async fn list_weekends_orders_by_start_date_desc(pool: PgPool) {
+    async fn list_weekends_orders_by_start_date_asc(pool: PgPool) {
         let db = db(pool);
         seed_weekend(&db, 2024, 1).await;
         seed_weekend(&db, 2024, 2).await;
 
         let weekends = db.list_weekends(2024).await.unwrap();
         assert_eq!(weekends.len(), 2);
-        assert_eq!(weekends[0].round, 2);
-        assert_eq!(weekends[1].round, 1);
+        assert_eq!(weekends[0].round, 1);
+        assert_eq!(weekends[1].round, 2);
+    }
+
+    #[sqlx::test]
+    async fn list_weekends_tallies_votes_per_session(pool: PgPool) {
+        let db = db(pool);
+        let weekend_id = seed_weekend(&db, 2024, 1).await;
+        db.upsert_session(
+            weekend_id,
+            SessionType::Race,
+            jiff_sqlx::Timestamp::from("2024-09-01T13:00:00Z".parse::<JiffTimestamp>().unwrap()),
+        )
+        .await
+        .unwrap();
+        let session_id: i64 = sqlx::query_scalar!("SELECT id FROM session")
+            .fetch_one(&db.db)
+            .await
+            .unwrap();
+
+        db.insert_vote("u1", session_id, VoteType::FullRace)
+            .await
+            .unwrap();
+        db.insert_vote("u2", session_id, VoteType::FullRace)
+            .await
+            .unwrap();
+        db.insert_vote("u3", session_id, VoteType::Highlights)
+            .await
+            .unwrap();
+
+        let weekends = db.list_weekends(2024).await.unwrap();
+        assert_eq!(weekends.len(), 1);
+        let sessions = &weekends[0].sessions;
+        assert_eq!(sessions.len(), 1);
+        assert_eq!(sessions[0].id, session_id);
+        assert_eq!(sessions[0].votes.full_race, 2);
+        assert_eq!(sessions[0].votes.race_in_30, 0);
+        assert_eq!(sessions[0].votes.highlights, 1);
+    }
+
+    #[sqlx::test]
+    async fn list_weekends_includes_weekend_without_sessions(pool: PgPool) {
+        let db = db(pool);
+        seed_weekend(&db, 2024, 1).await;
+
+        let weekends = db.list_weekends(2024).await.unwrap();
+        assert_eq!(weekends.len(), 1);
+        assert!(weekends[0].sessions.is_empty());
     }
 
     #[sqlx::test]

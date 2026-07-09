@@ -1,4 +1,22 @@
 // TODO replace with generated types via OpenAPI spec
+
+export interface VoteCounts {
+  fullRace: number;
+  raceIn30: number;
+  highlights: number;
+}
+
+export type SessionType =
+  "FreePractice" | "SprintQualifying" | "SprintRace" | "Qualifying" | "Race";
+
+export interface SessionResponse {
+  id: number;
+  sessionType: SessionType;
+  startTime: string;
+  endTime: string | null;
+  votes: VoteCounts;
+}
+
 export interface RaceWeekendResponse {
   id: number;
   year: number;
@@ -8,4 +26,5 @@ export interface RaceWeekendResponse {
   startDate: string;
   round: number;
   officialName: string;
+  sessions: SessionResponse[];
 }

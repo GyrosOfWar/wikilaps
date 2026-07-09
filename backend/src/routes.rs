@@ -1,6 +1,6 @@
 use crate::{
     auth::{self, UserId},
-    database::{Database, RaceWeekend, VoteType},
+    database::{Database, RaceWeekend, SessionType, SessionWithVotes, VoteType},
     error::Result,
 };
 use axum::{
@@ -9,7 +9,7 @@ use axum::{
     http::{HeaderMap, StatusCode},
 };
 use axum_extra::extract::cookie::CookieJar;
-use jiff::civil::Date;
+use jiff::{Timestamp, civil::Date};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tracing::info;
@@ -35,6 +35,25 @@ pub struct RaceWeekendResponse {
     pub start_date: Date,
     pub round: i32,
     pub official_name: String,
+    pub sessions: Vec<SessionResponse>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SessionResponse {
+    pub id: i64,
+    pub session_type: SessionType,
+    pub start_time: Timestamp,
+    pub end_time: Option<Timestamp>,
+    pub votes: VoteCounts,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct VoteCounts {
+    pub full_race: i64,
+    pub race_in_30: i64,
+    pub highlights: i64,
 }
 
 impl From<RaceWeekend> for RaceWeekendResponse {
@@ -48,6 +67,27 @@ impl From<RaceWeekend> for RaceWeekendResponse {
             start_date: value.start_date.to_jiff(),
             round: value.round,
             official_name: value.official_name,
+            sessions: value
+                .sessions
+                .into_iter()
+                .map(SessionResponse::from)
+                .collect(),
+        }
+    }
+}
+
+impl From<SessionWithVotes> for SessionResponse {
+    fn from(value: SessionWithVotes) -> Self {
+        SessionResponse {
+            id: value.id,
+            session_type: value.session_type,
+            start_time: value.start_time.to_jiff(),
+            end_time: value.end_time.map(|t| t.to_jiff()),
+            votes: VoteCounts {
+                full_race: value.votes.full_race,
+                race_in_30: value.votes.race_in_30,
+                highlights: value.votes.highlights,
+            },
         }
     }
 }
@@ -70,7 +110,7 @@ pub async fn list_weekends(
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct SessionResponse {
+pub struct InitSessionResponse {
     /// Whether this call created a fresh identity or the browser already had a valid one
     pub created: bool,
 }
@@ -83,13 +123,13 @@ pub async fn init_session(
     state: State<AppState>,
     headers: HeaderMap,
     jar: CookieJar,
-) -> (CookieJar, Json<SessionResponse>) {
+) -> (CookieJar, Json<InitSessionResponse>) {
     let existing = jar
         .get(auth::COOKIE_NAME)
         .and_then(|cookie| auth::verify_token(&state.cookie_secret, cookie.value()));
 
     if existing.is_some() {
-        return (jar, Json(SessionResponse { created: false }));
+        return (jar, Json(InitSessionResponse { created: false }));
     }
 
     let (token, cookie_value) = auth::issue_token(&state.cookie_secret);
@@ -101,7 +141,7 @@ pub async fn init_session(
     );
 
     let jar = jar.add(auth::build_cookie(cookie_value, state.cookie_secure));
-    (jar, Json(SessionResponse { created: true }))
+    (jar, Json(InitSessionResponse { created: true }))
 }
 
 #[derive(Debug, Deserialize)]

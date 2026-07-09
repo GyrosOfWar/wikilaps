@@ -1,0 +1,6 @@
+format:
+    cargo fmt
+
+check:
+    cargo fmt --check
+    cargo check
