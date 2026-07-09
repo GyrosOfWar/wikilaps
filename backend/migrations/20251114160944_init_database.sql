@@ -10,7 +10,7 @@ CREATE TABLE race_weekend (
     UNIQUE (year, round)
 );
 
-CREATE TYPE session_type AS ENUM ('FreePractice', 'SprintQualification', 'SprintRace', 'Qualifying', 'Race');
+CREATE TYPE session_type AS ENUM ('free_practice', 'sprint_qualifying', 'sprint_race', 'qualifying', 'race');
 
 CREATE TABLE session (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

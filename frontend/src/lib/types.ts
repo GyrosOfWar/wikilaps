@@ -7,7 +7,7 @@ export interface VoteCounts {
 }
 
 export type SessionType =
-  "FREE_PRACTICE" | "SPRINT_QUALIFYING" | "SPRINT_RACE" | "QUALIFYING" | "RACE";
+  "free_practice" | "sprint_qualifying" | "sprint_race" | "qualifying" | "race";
 
 export interface SessionResponse {
   id: number;

@@ -1,4 +1,9 @@
 {
   "$schema": "https://inlang.com/schema/inlang-message-format",
-  "hello_world": "Hello, {name} from de!"
+  "hello_world": "Hallo, {name} von de!",
+  "session_type_free_practice": "Freies Training",
+  "session_type_sprint_qualification": "Sprint-Qualifying",
+  "session_type_sprint_race": "Sprintrennen",
+  "session_type_qualifying": "Qualifying",
+  "session_type_race": "Rennen"
 }

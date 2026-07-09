@@ -94,7 +94,7 @@ fn race_sessions(race: &f1db::Race) -> Vec<(SessionType, Option<&str>, Option<&s
             race.free_practice_4_time.as_deref(),
         ),
         (
-            SessionType::SprintQualification,
+            SessionType::SprintQualifying,
             race.sprint_qualifying_date.as_deref(),
             race.sprint_qualifying_time.as_deref(),
         ),

@@ -3,11 +3,11 @@ use crate::error::Result;
 use sqlx::PgPool;
 
 #[derive(Debug, Clone, Copy, sqlx::Type, serde::Serialize)]
-#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-#[sqlx(type_name = "session_type", rename_all = "PascalCase")]
+#[serde(rename_all = "snake_case")]
+#[sqlx(type_name = "session_type", rename_all = "snake_case")]
 pub enum SessionType {
     FreePractice,
-    SprintQualification,
+    SprintQualifying,
     SprintRace,
     Qualifying,
     Race,

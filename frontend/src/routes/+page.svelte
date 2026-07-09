@@ -2,6 +2,7 @@
   import { Accordion } from "@skeletonlabs/skeleton-svelte";
   import ChevronDownIcon from "@lucide/svelte/icons/chevron-down";
   import { slide } from "svelte/transition";
+  import { sessionTypeLabel } from "$lib/i18n.js";
 
   const { data } = $props();
 </script>
@@ -36,7 +37,7 @@
                     <Accordion.ItemTrigger
                       class="font-bold flex items-center justify-between gap-2"
                     >
-                      {session.sessionType}
+                      {sessionTypeLabel(session.sessionType)}
                       <Accordion.ItemIndicator class="group">
                         <ChevronDownIcon
                           class="h-5 w-5 transition group-data-[state=open]:rotate-180"
