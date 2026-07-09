@@ -5,6 +5,7 @@
  * See https://www.npmjs.com/package/oazapfts
  */
 import * as Oazapfts from "@oazapfts/runtime";
+import * as QS from "@oazapfts/runtime/query";
 export const defaults: Oazapfts.Defaults<Oazapfts.CustomHeaders> = {
   headers: {},
   baseUrl: "/",
@@ -12,8 +13,7 @@ export const defaults: Oazapfts.Defaults<Oazapfts.CustomHeaders> = {
 const oazapfts = Oazapfts.runtime(defaults);
 export const servers = {};
 export type String = string;
-export type SessionType =
-  "free_practice" | "sprint_qualifying" | "sprint_race" | "qualifying" | "race";
+export type SessionType = "sprint_qualifying" | "sprint_race" | "qualifying" | "race";
 export type VoteCounts = {
   full: number;
   highlights: number;
@@ -27,8 +27,9 @@ export type SessionResponse = {
   votes: VoteCounts;
 };
 export type RaceWeekendResponse = {
-  circuitName: string;
+  circuitFullName: string;
   countryKey: string;
+  grandPrixId: string;
   id: number;
   location: string;
   officialName: string;

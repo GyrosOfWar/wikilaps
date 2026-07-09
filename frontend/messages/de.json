@@ -3,7 +3,6 @@
   "app_name": "wikilaps",
   "welcome_text": "Spoilerfreie Formel 1-Rennempfehlungen.",
   "race_weekend_round": "{n}. Runde",
-  "session_type_free_practice": "Freies Training",
   "session_type_sprint_qualification": "Sprint-Qualifying",
   "session_type_sprint_race": "Sprintrennen",
   "session_type_qualifying": "Qualifying",
