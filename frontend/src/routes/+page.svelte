@@ -7,6 +7,7 @@
   import VoteResults from "$lib/components/VoteResults.svelte";
   import LanguageSwitcher from "$lib/components/LanguageSwitcher.svelte";
   import { Temporal } from "temporal-polyfill";
+  import { formatDate } from "$lib/date-time.js";
 
   const { data } = $props();
 
@@ -37,7 +38,7 @@
       class={[
         "card border border-surface-200-800 card-hover divide-surface-200-800 block divide-y overflow-hidden",
         future
-          ? "cursor-not-allowed preset-outlined-surface-100-900"
+          ? "cursor-not-allowed preset-outlined-surface-100-900 opacity-50"
           : "preset-filled-surface-100-900",
       ]}
     >
@@ -45,7 +46,7 @@
       <article class="space-y-4 p-4">
         <div>
           <h2 class="h6 mb-2">
-            {m.race_weekend_round({ n: weekend.round })} ({weekend.startDate})
+            {m.race_weekend_round({ n: weekend.round })} ({formatDate(weekend.startDate)})
           </h2>
           <h1 class="h3 mb-4">
             <span class="fi fi-{weekend.countryKey.toLowerCase()}"></span>
