@@ -19,7 +19,7 @@ async fn main() -> Result<()> {
     let database = Database::new(&config.database_url).await?;
 
     let app = Router::new()
-        .route("/api/race-weekends", get(routes::list_weekends))
+        .route("/api/race-weekends/{year}", get(routes::list_weekends))
         .route("/api/session", post(routes::init_session))
         .route("/api/vote", post(routes::create_vote))
         .with_state(AppState {

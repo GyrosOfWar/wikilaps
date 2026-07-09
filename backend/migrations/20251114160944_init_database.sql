@@ -5,7 +5,9 @@ CREATE TABLE race_weekend (
     circuit_name VARCHAR NOT NULL,
     country_key VARCHAR NOT NULL,
     start_date DATE NOT NULL,
-    round INT NOT NULL
+    round INT NOT NULL,
+    official_name VARCHAR NOT NULL,
+    UNIQUE (year, round)
 );
 
 CREATE TYPE session_type AS ENUM ('FreePractice', 'SprintQualification', 'SprintRace', 'Qualifying', 'Race');
@@ -15,7 +17,8 @@ CREATE TABLE session (
     weekend_id BIGINT REFERENCES race_weekend (id) NOT NULL,
     session_type session_type NOT NULL,
     start_time TIMESTAMPTZ NOT NULL,
-    end_time TIMESTAMPTZ
+    end_time TIMESTAMPTZ,
+    UNIQUE (weekend_id, session_type, start_time)
 );
 
 CREATE TYPE vote_type AS ENUM ('FullRace', 'RaceIn30', 'Highlights');

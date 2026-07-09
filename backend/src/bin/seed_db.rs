@@ -32,6 +32,7 @@ mod f1db {
         pub round: i32,
         pub date: String,
         pub time: Option<String>,
+        pub official_name: String,
         pub circuit_id: String,
         pub free_practice_1_date: Option<String>,
         pub free_practice_1_time: Option<String>,
@@ -235,6 +236,7 @@ async fn main() -> Result<()> {
                 &circuit.place_name,
                 &circuit.full_name,
                 country_key,
+                &race.official_name,
                 start_date.to_sqlx(),
             )
             .await?;

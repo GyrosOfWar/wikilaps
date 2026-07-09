@@ -3,7 +3,11 @@ use crate::{
     database::{Database, RaceWeekend, VoteType},
     error::Result,
 };
-use axum::{Json, extract::State, http::HeaderMap, http::StatusCode};
+use axum::{
+    Json,
+    extract::{Path, State},
+    http::{HeaderMap, StatusCode},
+};
 use axum_extra::extract::cookie::CookieJar;
 use jiff::civil::Date;
 use serde::{Deserialize, Serialize};
@@ -21,6 +25,7 @@ pub struct AppState {
 }
 
 #[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct RaceWeekendResponse {
     pub id: i64,
     pub year: i32,
@@ -29,6 +34,7 @@ pub struct RaceWeekendResponse {
     pub country_key: String,
     pub start_date: Date,
     pub round: i32,
+    pub official_name: String,
 }
 
 impl From<RaceWeekend> for RaceWeekendResponse {
@@ -41,15 +47,19 @@ impl From<RaceWeekend> for RaceWeekendResponse {
             country_key: value.country_key,
             start_date: value.start_date.to_jiff(),
             round: value.round,
+            official_name: value.official_name,
         }
     }
 }
 
 #[axum::debug_handler]
-pub async fn list_weekends(state: State<AppState>) -> Result<Json<Vec<RaceWeekendResponse>>> {
+pub async fn list_weekends(
+    state: State<AppState>,
+    Path(year): Path<i32>,
+) -> Result<Json<Vec<RaceWeekendResponse>>> {
     let weekends: Vec<_> = state
         .db
-        .list_weekends()
+        .list_weekends(year)
         .await?
         .into_iter()
         .map(From::from)

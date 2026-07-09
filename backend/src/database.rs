@@ -25,6 +25,7 @@ pub struct RaceWeekend {
     pub id: i64,
     pub year: i32,
     pub location: String,
+    pub official_name: String,
     pub circuit_name: String,
     pub country_key: String,
     pub start_date: jiff_sqlx::Date,
@@ -44,13 +45,18 @@ impl Database {
         Ok(Self { db })
     }
 
-    pub async fn list_weekends(&self) -> Result<Vec<RaceWeekend>> {
+    pub async fn list_weekends(&self, year: i32) -> Result<Vec<RaceWeekend>> {
         let data = sqlx::query_as!(
             RaceWeekend,
-            r#"SELECT id, year, location, circuit_name, country_key, 
-                      start_date as "start_date: jiff_sqlx::Date", round
-                FROM race_weekend
-                ORDER BY start_date DESC"#
+            r#"SELECT r.id, r.year, r.location, r.circuit_name, r.country_key,
+                      r.start_date as "start_date: jiff_sqlx::Date", r.round,
+                      r.official_name
+
+                FROM race_weekend r
+                INNER JOIN session s ON s.weekend_id = r.id
+                WHERE year = $1
+                ORDER BY start_date ASC"#,
+            year
         )
         .fetch_all(&self.db)
         .await?;
@@ -68,11 +74,12 @@ impl Database {
         location: &str,
         circuit_name: &str,
         country_key: &str,
+        official_name: &str,
         start_date: jiff_sqlx::Date,
     ) -> Result<i64> {
         let id = sqlx::query_scalar!(
-            r#"INSERT INTO race_weekend (year, round, location, circuit_name, country_key, start_date)
-                VALUES ($1, $2, $3, $4, $5, $6)
+            r#"INSERT INTO race_weekend (year, round, location, circuit_name, country_key, start_date, official_name)
+                VALUES ($1, $2, $3, $4, $5, $6, $7)
                 ON CONFLICT (year, round) DO UPDATE SET
                     location = EXCLUDED.location,
                     circuit_name = EXCLUDED.circuit_name,
@@ -85,6 +92,7 @@ impl Database {
             circuit_name,
             country_key,
             start_date as _,
+            official_name,
         )
         .fetch_one(&self.db)
         .await?;
@@ -122,7 +130,7 @@ impl Database {
         vote_type: VoteType,
     ) -> Result<()> {
         sqlx::query!(
-            "INSERT INTO votes (vote_type, user_identifier, session_id) 
+            "INSERT INTO votes (vote_type, user_identifier, session_id)
                 VALUES ($1, $2, $3)
             ON CONFLICT (user_identifier, session_id) DO NOTHING",
             vote_type as _,
@@ -153,6 +161,7 @@ mod tests {
             "Monza",
             "Autodromo Nazionale Monza",
             "ITA",
+            "Formula 1 AWS Gran Premio del Made in Italy e dell'Emilia Romagna 2025",
             jiff_sqlx::Date::from(date(year as i16, 9, round as i8)),
         )
         .await
@@ -162,20 +171,31 @@ mod tests {
     #[sqlx::test]
     async fn list_weekends_empty(pool: PgPool) {
         let db = db(pool);
-        let weekends = db.list_weekends().await.unwrap();
+        let weekends = db.list_weekends(2024).await.unwrap();
         assert!(weekends.is_empty());
+    }
+
+    #[sqlx::test]
+    async fn list_weekends_filters_by_year(pool: PgPool) {
+        let db = db(pool);
+        seed_weekend(&db, 2023, 1).await;
+        seed_weekend(&db, 2024, 1).await;
+
+        let weekends = db.list_weekends(2024).await.unwrap();
+        assert_eq!(weekends.len(), 1);
+        assert_eq!(weekends[0].year, 2024);
     }
 
     #[sqlx::test]
     async fn list_weekends_orders_by_start_date_desc(pool: PgPool) {
         let db = db(pool);
-        seed_weekend(&db, 2023, 1).await;
         seed_weekend(&db, 2024, 1).await;
+        seed_weekend(&db, 2024, 2).await;
 
-        let weekends = db.list_weekends().await.unwrap();
+        let weekends = db.list_weekends(2024).await.unwrap();
         assert_eq!(weekends.len(), 2);
-        assert_eq!(weekends[0].year, 2024);
-        assert_eq!(weekends[1].year, 2023);
+        assert_eq!(weekends[0].round, 2);
+        assert_eq!(weekends[1].round, 1);
     }
 
     #[sqlx::test]
@@ -183,7 +203,7 @@ mod tests {
         let db = db(pool);
         let id = seed_weekend(&db, 2024, 1).await;
 
-        let weekends = db.list_weekends().await.unwrap();
+        let weekends = db.list_weekends(2024).await.unwrap();
         assert_eq!(weekends.len(), 1);
         assert_eq!(weekends[0].id, id);
         assert_eq!(weekends[0].location, "Monza");
@@ -201,6 +221,7 @@ mod tests {
                 "Imola",
                 "Autodromo Enzo e Dino Ferrari",
                 "ITA",
+                "Formula 1 Made in Italy e dell'Emilia Romagna 2024",
                 jiff_sqlx::Date::from(date(2024, 9, 1)),
             )
             .await
@@ -208,7 +229,7 @@ mod tests {
 
         assert_eq!(id, updated_id);
 
-        let weekends = db.list_weekends().await.unwrap();
+        let weekends = db.list_weekends(2024).await.unwrap();
         assert_eq!(weekends.len(), 1);
         assert_eq!(weekends[0].location, "Imola");
     }
