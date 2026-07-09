@@ -1,5 +1,5 @@
 import * as m from "$lib/paraglide/messages";
-import type { SessionType } from "$lib/types";
+import type { SessionType } from "$lib/api";
 
 const sessionTypeLabels: Record<SessionType, () => string> = {
   free_practice: m.session_type_free_practice,

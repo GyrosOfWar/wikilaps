@@ -39,7 +39,7 @@
             {weekend.location}
           </h1>
           <Accordion>
-            {#each weekend.sessions.filter((s) => s.sessionType !== "free_practice") as session, i (session.id)}
+            {#each weekend.sessions as session, i (session.id)}
               {#if i !== 0}
                 <hr class="hr" />
               {/if}
@@ -58,7 +58,7 @@
                   {#snippet element(attributes)}
                     {#if !attributes.hidden}
                       <div {...attributes} transition:slide={{ duration: 150 }} class="pb-3">
-                        <VoteResults votes={session.votes} />
+                        <VoteResults sessionType={session.sessionType} votes={session.votes} />
                       </div>
                     {/if}
                   {/snippet}

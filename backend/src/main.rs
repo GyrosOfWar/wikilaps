@@ -1,11 +1,17 @@
-use axum::{
-    Router,
-    routing::{get, post},
-};
 use dotenvy::dotenv;
 use tracing::info;
 use tracing_subscriber::EnvFilter;
-use wikilaps::{config::AppConfig, database::Database, error::Result, routes, routes::AppState};
+use utoipa::OpenApi;
+use utoipa_axum::router::OpenApiRouter;
+use utoipa_axum::routes;
+use utoipa_swagger_ui::SwaggerUi;
+use wikilaps::{
+    config::AppConfig,
+    database::Database,
+    docs::ApiDocs,
+    error::Result,
+    routes::{self, AppState},
+};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -18,22 +24,25 @@ async fn main() -> Result<()> {
     let config = AppConfig::default();
     let database = Database::new(&config.database_url).await?;
 
-    let app = Router::new()
-        .route("/api/race-weekends/{year}", get(routes::list_weekends))
-        .route("/api/session", post(routes::init_session))
-        .route("/api/vote", post(routes::create_vote))
+    let (router, api) = OpenApiRouter::with_openapi(ApiDocs::openapi())
+        .routes(routes!(routes::list_weekends))
+        .routes(routes!(routes::init_session))
+        .routes(routes!(routes::create_vote))
         .with_state(AppState {
             db: database,
             cookie_secret: config.cookie_secret.into(),
             cookie_secure: config.cookie_secure,
-        });
+        })
+        .split_for_parts();
+
+    let router = router.merge(SwaggerUi::new("/swagger-ui").url("/apidoc/openapi.json", api));
 
     info!("Starting on port 13252");
     let listener =
         tokio::net::TcpListener::bind(format!("{}:{}", config.server_host, config.server_port))
             .await
             .unwrap();
-    axum::serve(listener, app).await.unwrap();
+    axum::serve(listener, router).await.unwrap();
 
     Ok(())
 }

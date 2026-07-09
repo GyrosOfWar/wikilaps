@@ -20,3 +20,6 @@ format:
 check:
     just backend check
     just frontend check
+
+generate:
+    just frontend generate

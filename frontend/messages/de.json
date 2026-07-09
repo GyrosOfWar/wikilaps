@@ -9,6 +9,7 @@
   "session_type_qualifying": "Qualifying",
   "session_type_race": "Rennen",
   "vote_type_full_race": "Das ganze Rennen",
+  "vote_type_full_session": "Die ganze Session",
   "vote_type_race_in_30": "Rennen in 30 Minuten",
   "vote_type_highlights": "Highlights",
   "poll_total_votes": "{n} Stimmen",

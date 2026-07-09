@@ -4,3 +4,7 @@ format:
 check:
     pnpm check
     pnpm lint
+
+generate:
+    pnpm openapi:generate
+    npx prettier --write src/lib/api.ts

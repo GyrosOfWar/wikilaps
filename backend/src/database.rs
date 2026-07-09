@@ -1,8 +1,10 @@
 use crate::error::Result;
 
+use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
+use utoipa::ToSchema;
 
-#[derive(Debug, Clone, Copy, sqlx::Type, serde::Serialize)]
+#[derive(Debug, Clone, Copy, sqlx::Type, Serialize, ToSchema)]
 #[serde(rename_all = "snake_case")]
 #[sqlx(type_name = "session_type", rename_all = "snake_case")]
 pub enum SessionType {
@@ -13,7 +15,7 @@ pub enum SessionType {
     Race,
 }
 
-#[derive(Debug, Clone, Copy, sqlx::Type, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, Copy, sqlx::Type, Serialize, Deserialize, ToSchema)]
 #[sqlx(type_name = "vote_type", rename_all = "PascalCase")]
 pub enum VoteType {
     FullRace,
@@ -78,7 +80,7 @@ impl Database {
                 FROM race_weekend r
                 LEFT JOIN session s ON s.weekend_id = r.id
                 LEFT JOIN votes v ON v.session_id = s.id
-                WHERE r.year = $1
+                WHERE r.year = $1 AND s.session_type != 'free_practice'
                 GROUP BY r.id, s.id
                 ORDER BY r.start_date ASC, r.id ASC, s.start_time ASC NULLS FIRST"#,
             year

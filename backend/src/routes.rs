@@ -13,6 +13,7 @@ use jiff::{Timestamp, civil::Date};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tracing::info;
+use utoipa::ToSchema;
 
 #[derive(Clone)]
 pub struct AppState {
@@ -24,7 +25,7 @@ pub struct AppState {
     pub cookie_secure: bool,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct RaceWeekendResponse {
     pub id: i64,
@@ -38,7 +39,7 @@ pub struct RaceWeekendResponse {
     pub sessions: Vec<SessionResponse>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct SessionResponse {
     pub id: i64,
@@ -48,11 +49,11 @@ pub struct SessionResponse {
     pub votes: VoteCounts,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct VoteCounts {
-    pub full_race: i64,
-    pub race_in_30: i64,
+    pub full: i64,
+    pub race_in_30: Option<i64>,
     pub highlights: i64,
 }
 
@@ -83,16 +84,33 @@ impl From<SessionWithVotes> for SessionResponse {
             session_type: value.session_type,
             start_time: value.start_time.to_jiff(),
             end_time: value.end_time.map(|t| t.to_jiff()),
-            votes: VoteCounts {
-                full_race: value.votes.full_race,
-                race_in_30: value.votes.race_in_30,
-                highlights: value.votes.highlights,
+            votes: match value.session_type {
+                SessionType::Race => VoteCounts {
+                    full: value.votes.full_race,
+                    race_in_30: Some(value.votes.race_in_30),
+                    highlights: value.votes.highlights,
+                },
+                _ => VoteCounts {
+                    full: value.votes.full_race,
+                    race_in_30: None,
+                    highlights: value.votes.highlights,
+                },
             },
         }
     }
 }
 
 #[axum::debug_handler]
+#[utoipa::path(
+    method(get),
+    path = "/api/race-weekends/{year}",
+    params(
+        ("year" = i32, Path),
+    ),
+    responses(
+        (status = OK, description = "Success", body = Vec<RaceWeekendResponse>)
+    )
+)]
 pub async fn list_weekends(
     state: State<AppState>,
     Path(year): Path<i32>,
@@ -119,6 +137,7 @@ pub struct InitSessionResponse {
 /// identity cookie if the browser doesn't already have a valid one, and is a
 /// no-op (keeping the existing identity) otherwise.
 #[axum::debug_handler]
+#[utoipa::path(method(get), path = "/api/session")]
 pub async fn init_session(
     state: State<AppState>,
     headers: HeaderMap,
@@ -155,6 +174,7 @@ pub struct VoteRequest {
 /// cookie. The `(user_identifier, session_id)` unique constraint means a
 /// browser's first vote for a session wins; subsequent votes are ignored.
 #[axum::debug_handler]
+#[utoipa::path(method(post), path = "/api/vote")]
 pub async fn create_vote(
     state: State<AppState>,
     user: UserId,

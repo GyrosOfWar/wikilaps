@@ -7,6 +7,7 @@ const handleParaglide: Handle = ({ event, resolve }) =>
     event.request = request;
 
     return resolve(event, {
+      filterSerializedResponseHeaders: (name) => name === "content-type",
       transformPageChunk: ({ html }) =>
         html
           .replace("%paraglide.lang%", locale)

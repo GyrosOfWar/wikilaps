@@ -1,7 +1,7 @@
-import type { RaceWeekendResponse } from "$lib/types.js";
+import * as api from "$lib/api.js";
 
 export const load = async ({ fetch }) => {
-  const response = await fetch("/api/race-weekends/2026");
-  const json: RaceWeekendResponse[] = await response.json();
-  return { weekends: json };
+  const weekends = await api.listWeekends(2026, { fetch });
+
+  return { weekends: weekends.data };
 };

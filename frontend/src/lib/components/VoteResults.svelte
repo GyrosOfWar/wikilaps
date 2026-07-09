@@ -1,15 +1,29 @@
 <script lang="ts">
   import * as m from "$lib/paraglide/messages";
-  import type { VoteCounts } from "$lib/types.js";
+  import type { SessionType, VoteCounts } from "$lib/api";
   import CheckIcon from "@lucide/svelte/icons/check";
 
-  const { votes }: { votes: VoteCounts } = $props();
+  const { votes, sessionType }: { votes: VoteCounts; sessionType: SessionType } = $props();
 
-  const options = $derived([
-    { label: m.vote_type_full_race(), count: votes.fullRace },
-    { label: m.vote_type_race_in_30(), count: votes.raceIn30 },
-    { label: m.vote_type_highlights(), count: votes.highlights },
-  ]);
+  const options = $derived.by(() => {
+    if (sessionType === "race") {
+      return [
+        { label: m.vote_type_full_race(), count: votes.full },
+        { label: m.vote_type_race_in_30(), count: votes.raceIn30! },
+        { label: m.vote_type_highlights(), count: votes.highlights },
+      ];
+    } else if (sessionType === "sprint_race") {
+      return [
+        { label: m.vote_type_full_race(), count: votes.full },
+        { label: m.vote_type_highlights(), count: votes.highlights },
+      ];
+    } else {
+      return [
+        { label: m.vote_type_full_session(), count: votes.full },
+        { label: m.vote_type_highlights(), count: votes.highlights },
+      ];
+    }
+  });
 
   const total = $derived(options.reduce((sum, o) => sum + o.count, 0));
   const maxCount = $derived(Math.max(...options.map((o) => o.count)));
