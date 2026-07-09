@@ -4,6 +4,8 @@
   import ChevronDownIcon from "@lucide/svelte/icons/chevron-down";
   import { slide } from "svelte/transition";
   import { sessionTypeLabel } from "$lib/i18n.js";
+  import VoteResults from "$lib/components/VoteResults.svelte";
+  import LanguageSwitcher from "$lib/components/LanguageSwitcher.svelte";
 
   const { data } = $props();
 </script>
@@ -12,8 +14,14 @@
   <title>wikilaps</title>
 </svelte:head>
 
-<h1 class="h1">{m.app_name()}</h1>
-<p>{m.welcome_text()}</p>
+<header class="w-full flex justify-between items-start">
+  <div>
+    <h1 class="h1">{m.app_name()}</h1>
+    <p>{m.welcome_text()}</p>
+  </div>
+
+  <LanguageSwitcher />
+</header>
 
 <section class="grid gap-4 grid-cols-1 lg:grid-cols-3 xl:grid-cols-3 mt-6">
   {#each data.weekends as weekend (weekend.id)}
@@ -24,14 +32,14 @@
       <article class="space-y-4 p-4">
         <div>
           <h2 class="h6 mb-2">
-            {m.race_weekend_round({ n: weekend.round })}
+            {m.race_weekend_round({ n: weekend.round })} ({weekend.startDate})
           </h2>
           <h1 class="h3 mb-4">
             <span class="fi fi-{weekend.countryKey.toLowerCase()}"></span>
             {weekend.location}
           </h1>
           <Accordion>
-            {#each weekend.sessions as session, i (session.id)}
+            {#each weekend.sessions.filter((s) => s.sessionType !== "free_practice") as session, i (session.id)}
               {#if i !== 0}
                 <hr class="hr" />
               {/if}
@@ -49,7 +57,9 @@
                 <Accordion.ItemContent>
                   {#snippet element(attributes)}
                     {#if !attributes.hidden}
-                      <div {...attributes} transition:slide={{ duration: 150 }}>Hello!</div>
+                      <div {...attributes} transition:slide={{ duration: 150 }} class="pb-3">
+                        <VoteResults votes={session.votes} />
+                      </div>
                     {/if}
                   {/snippet}
                 </Accordion.ItemContent>

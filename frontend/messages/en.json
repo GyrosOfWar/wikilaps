@@ -7,5 +7,10 @@
   "session_type_sprint_qualification": "Sprint Qualifying",
   "session_type_sprint_race": "Sprint Race",
   "session_type_qualifying": "Qualifying",
-  "session_type_race": "Race"
+  "session_type_race": "Race",
+  "vote_type_full_race": "Full race",
+  "vote_type_race_in_30": "Race in 30",
+  "vote_type_highlights": "Highlights",
+  "poll_total_votes": "{n} votes",
+  "poll_no_votes": "No votes yet"
 }
