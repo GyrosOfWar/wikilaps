@@ -30,7 +30,7 @@
   <LanguageSwitcher />
 </header>
 
-<section class="grid gap-4 grid-cols-1 lg:grid-cols-3 xl:grid-cols-3 mt-6">
+<section class="grid gap-4 grid-cols-1 mt-6 max-w-3xl self-center w-full">
   {#each data.weekends as weekend (weekend.id)}
     {@const future = isInFuture(weekend.startDate)}
     <div

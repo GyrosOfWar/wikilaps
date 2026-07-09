@@ -10,6 +10,6 @@
   <link rel="icon" href={favicon} />
 </svelte:head>
 
-<main class="container mx-auto mt-4">
+<main class="container mx-auto mt-4 flex flex-col">
   {@render children()}
 </main>
