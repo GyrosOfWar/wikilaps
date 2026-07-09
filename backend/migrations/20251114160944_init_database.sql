@@ -2,15 +2,17 @@ CREATE TABLE race_weekend (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     year INT NOT NULL,
     location VARCHAR NOT NULL,
-    circuit_name VARCHAR NOT NULL,
     country_key VARCHAR NOT NULL,
     start_date DATE NOT NULL,
     round INT NOT NULL,
     official_name VARCHAR NOT NULL,
+    circuit_full_name VARCHAR NOT NULL,
+    circuit_id VARCHAR NOT NULL,
+    grand_prix_id VARCHAR NOT NULL,
     UNIQUE (year, round)
 );
 
-CREATE TYPE session_type AS ENUM ('free_practice', 'sprint_qualifying', 'sprint_race', 'qualifying', 'race');
+CREATE TYPE session_type AS ENUM ('sprint_qualifying', 'sprint_race', 'qualifying', 'race');
 
 CREATE TABLE session (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

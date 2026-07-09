@@ -34,14 +34,7 @@ mod f1db {
         pub time: Option<String>,
         pub official_name: String,
         pub circuit_id: String,
-        pub free_practice_1_date: Option<String>,
-        pub free_practice_1_time: Option<String>,
-        pub free_practice_2_date: Option<String>,
-        pub free_practice_2_time: Option<String>,
-        pub free_practice_3_date: Option<String>,
-        pub free_practice_3_time: Option<String>,
-        pub free_practice_4_date: Option<String>,
-        pub free_practice_4_time: Option<String>,
+        pub grand_prix_id: String,
         pub qualifying_date: Option<String>,
         pub qualifying_time: Option<String>,
         pub sprint_qualifying_date: Option<String>,
@@ -67,32 +60,8 @@ mod f1db {
     }
 }
 
-/// The sessions of a race weekend as `(type, date, time)` triples, in the
-/// f1db field order. Practice sessions all map to the same `SessionType` —
-/// they're kept as separate rows (distinguished by `start_time`) so each is
-/// still individually votable.
 fn race_sessions(race: &f1db::Race) -> Vec<(SessionType, Option<&str>, Option<&str>)> {
     vec![
-        (
-            SessionType::FreePractice,
-            race.free_practice_1_date.as_deref(),
-            race.free_practice_1_time.as_deref(),
-        ),
-        (
-            SessionType::FreePractice,
-            race.free_practice_2_date.as_deref(),
-            race.free_practice_2_time.as_deref(),
-        ),
-        (
-            SessionType::FreePractice,
-            race.free_practice_3_date.as_deref(),
-            race.free_practice_3_time.as_deref(),
-        ),
-        (
-            SessionType::FreePractice,
-            race.free_practice_4_date.as_deref(),
-            race.free_practice_4_time.as_deref(),
-        ),
         (
             SessionType::SprintQualifying,
             race.sprint_qualifying_date.as_deref(),
@@ -234,7 +203,9 @@ async fn main() -> Result<()> {
                 race.year,
                 race.round,
                 &circuit.place_name,
+                &circuit.id,
                 &circuit.full_name,
+                &race.grand_prix_id,
                 country_key,
                 &race.official_name,
                 start_date.to_sqlx(),

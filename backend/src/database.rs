@@ -8,7 +8,6 @@ use utoipa::ToSchema;
 #[serde(rename_all = "snake_case")]
 #[sqlx(type_name = "session_type", rename_all = "snake_case")]
 pub enum SessionType {
-    FreePractice,
     SprintQualifying,
     SprintRace,
     Qualifying,
@@ -29,7 +28,8 @@ pub struct RaceWeekend {
     pub year: i32,
     pub location: String,
     pub official_name: String,
-    pub circuit_name: String,
+    pub circuit_full_name: String,
+    pub grand_prix_id: String,
     pub country_key: String,
     pub start_date: jiff_sqlx::Date,
     pub round: i32,
@@ -68,7 +68,7 @@ impl Database {
     pub async fn list_weekends(&self, year: i32) -> Result<Vec<RaceWeekend>> {
         let rows = sqlx::query!(
             r#"SELECT
-                    r.id AS weekend_id, r.year, r.location, r.circuit_name, r.country_key,
+                    r.id AS weekend_id, r.year, r.location, r.circuit_full_name, r.grand_prix_id, r.country_key,
                     r.start_date AS "start_date: jiff_sqlx::Date", r.round, r.official_name,
                     s.id AS "session_id?",
                     s.session_type AS "session_type?: SessionType",
@@ -80,7 +80,7 @@ impl Database {
                 FROM race_weekend r
                 LEFT JOIN session s ON s.weekend_id = r.id
                 LEFT JOIN votes v ON v.session_id = s.id
-                WHERE r.year = $1 AND s.session_type != 'free_practice'
+                WHERE r.year = $1
                 GROUP BY r.id, s.id
                 ORDER BY r.start_date ASC, r.id ASC, s.start_time ASC NULLS FIRST"#,
             year
@@ -95,7 +95,8 @@ impl Database {
                     id: row.weekend_id,
                     year: row.year,
                     location: row.location,
-                    circuit_name: row.circuit_name,
+                    circuit_full_name: row.circuit_full_name,
+                    grand_prix_id: row.grand_prix_id,
                     country_key: row.country_key,
                     start_date: row.start_date,
                     round: row.round,
@@ -133,24 +134,31 @@ impl Database {
         year: i32,
         round: i32,
         location: &str,
-        circuit_name: &str,
+        circuit_id: &str,
+        circuit_full_name: &str,
+        grand_prix_id: &str,
         country_key: &str,
         official_name: &str,
         start_date: jiff_sqlx::Date,
     ) -> Result<i64> {
         let id = sqlx::query_scalar!(
-            r#"INSERT INTO race_weekend (year, round, location, circuit_name, country_key, start_date, official_name)
-                VALUES ($1, $2, $3, $4, $5, $6, $7)
+            r#"INSERT INTO race_weekend (
+                    year, round, location, circuit_id, circuit_full_name,
+                    grand_prix_id, country_key, start_date, official_name
+                )
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
                 ON CONFLICT (year, round) DO UPDATE SET
                     location = EXCLUDED.location,
-                    circuit_name = EXCLUDED.circuit_name,
+                    circuit_full_name = EXCLUDED.circuit_full_name,
                     country_key = EXCLUDED.country_key,
                     start_date = EXCLUDED.start_date
                 RETURNING id"#,
             year,
             round,
             location,
-            circuit_name,
+            circuit_id,
+            circuit_full_name,
+            grand_prix_id,
             country_key,
             start_date as _,
             official_name,
@@ -220,7 +228,9 @@ mod tests {
             year,
             round,
             "Monza",
+            "monza",
             "Autodromo Nazionale Monza",
+            "emilia-romagna",
             "ITA",
             "Formula 1 AWS Gran Premio del Made in Italy e dell'Emilia Romagna 2025",
             jiff_sqlx::Date::from(date(year as i16, 9, round as i8)),
@@ -326,7 +336,9 @@ mod tests {
                 2024,
                 1,
                 "Imola",
+                "imola",
                 "Autodromo Enzo e Dino Ferrari",
+                "emilia-romagna",
                 "ITA",
                 "Formula 1 Made in Italy e dell'Emilia Romagna 2024",
                 jiff_sqlx::Date::from(date(2024, 9, 1)),
