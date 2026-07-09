@@ -3,6 +3,7 @@ use crate::error::Result;
 use sqlx::PgPool;
 
 #[derive(Debug, Clone, Copy, sqlx::Type, serde::Serialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[sqlx(type_name = "session_type", rename_all = "PascalCase")]
 pub enum SessionType {
     FreePractice,
