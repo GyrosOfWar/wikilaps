@@ -22,8 +22,10 @@
 </section>
 
 {#if data.weekend}
-  <section class="bg-white max-w-2xl mt-6 self-center w-full p-4 rounded-lg shadow-xl">
+  <section
+    class="bg-white dark:bg-surface-900 max-w-2xl mt-6 self-center w-full p-4 rounded-lg shadow-xl"
+  >
     <h2 class="h4 text-primary-500">Latest session</h2>
-    <RaceWeekendCard weekend={data.weekend} votes={[]} year={2026} onSubmitVote={submitVote} />
+    <RaceWeekendCard weekend={data.weekend} votes={[]} onSubmitVote={submitVote} />
   </section>
 {/if}

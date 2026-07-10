@@ -11,11 +11,10 @@
     class?: ClassValue;
     weekend: RaceWeekendResponse;
     votes: number[];
-    year: number;
     onSubmitVote: (sessionId: number, vote: VoteType) => void;
   }
 
-  let { weekend, votes, year, onSubmitVote, class: klass }: Props = $props();
+  let { weekend, votes, onSubmitVote, class: klass }: Props = $props();
 
   function isInFuture(date: string): boolean {
     const until = Temporal.PlainDate.from(date).until(Temporal.Now.plainDateISO());
@@ -29,6 +28,13 @@
     return Temporal.Now.instant().until(end).total("second") < 0;
   }
 
+  // translate a GP based on its ID like `las-vegas` to a message key like `gp_las_vegas`
+  function grandPrixName(grandPrixId: string) {
+    const id = `gp_${grandPrixId.replace("-", "_")}`;
+    // @ts-expect-error dynamic key but it's generally fine
+    return m[id]();
+  }
+
   const future = $derived(isInFuture(weekend.startDate));
 </script>
 
@@ -40,7 +46,7 @@
       </h2>
       <h1 class="h3 mb-4">
         <span class="fi fi-{weekend.countryKey.toLowerCase()}"></span>
-        {weekend.officialName.replace("Formula 1", "").replace(year.toString(), "").trim()}
+        {grandPrixName(weekend.grandPrixId)}
       </h1>
       {#if !future}
         <section class="space-y-4">

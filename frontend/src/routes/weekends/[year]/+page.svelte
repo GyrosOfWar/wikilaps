@@ -7,6 +7,11 @@
 
 <section class="grid gap-4 grid-cols-1 mt-6 max-w-3xl self-center w-full">
   {#each data.weekends as weekend (weekend.id)}
-    <RaceWeekendCard {weekend} votes={data.votes} year={data.year} onSubmitVote={submitVote} />
+    <RaceWeekendCard
+      {weekend}
+      class={["bg-white dark:bg-surface-800 shadow-xl"]}
+      votes={data.votes}
+      onSubmitVote={submitVote}
+    />
   {/each}
 </section>
