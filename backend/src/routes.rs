@@ -172,6 +172,13 @@ pub struct VoteRequest {
     pub vote: VoteType,
 }
 
+#[axum::debug_handler]
+#[utoipa::path(method(get), path = "/api/vote", responses((status = OK, body = Vec<i64>)))]
+pub async fn list_user_votes(state: State<AppState>, user: UserId) -> Result<Json<Vec<i64>>> {
+    let votes = state.db.list_voted_sessions_for_user(&user.0).await?;
+    Ok(Json(votes))
+}
+
 /// Cast a vote for a session on behalf of the browser identified by the signed
 /// cookie. The `(user_identifier, session_id)` unique constraint means a
 /// browser's first vote for a session wins; subsequent votes are ignored.

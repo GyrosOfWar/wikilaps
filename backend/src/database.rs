@@ -65,6 +65,7 @@ impl Database {
 
         Ok(Self { db })
     }
+
     pub async fn list_weekends(&self, year: i32) -> Result<Vec<RaceWeekend>> {
         let rows = sqlx::query!(
             r#"SELECT
@@ -124,6 +125,16 @@ impl Database {
         }
 
         Ok(weekends)
+    }
+
+    pub async fn list_voted_sessions_for_user(&self, user_id: &str) -> Result<Vec<i64>> {
+        sqlx::query_scalar!(
+            "SELECT session_id FROM votes WHERE user_identifier = $1",
+            user_id
+        )
+        .fetch_all(&self.db)
+        .await
+        .map_err(From::from)
     }
 
     /// Inserts a race weekend, or updates it in place if one with the same

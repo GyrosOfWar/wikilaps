@@ -56,6 +56,14 @@ export function initSession(opts?: Oazapfts.RequestOpts) {
     ...opts,
   });
 }
+export function listUserVotes(opts?: Oazapfts.RequestOpts) {
+  return oazapfts.fetchJson<{
+    status: 200;
+    data: number[];
+  }>("/api/vote", {
+    ...opts,
+  });
+}
 /**
  * Cast a vote for a session on behalf of the browser identified by the signed
  * cookie. The `(user_identifier, session_id)` unique constraint means a

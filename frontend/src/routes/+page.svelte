@@ -70,12 +70,12 @@
           </h2>
           <h1 class="h3 mb-4">
             <span class="fi fi-{weekend.countryKey.toLowerCase()}"></span>
-            {weekend.location}
+            {weekend.officialName.replace("Formula 1", "").replace("2026", "").trim()}
           </h1>
           {#if !future}
             <Accordion>
               {#each weekend.sessions as session, i (session.id)}
-                {@const interactive = canVote(session)}
+                {@const interactive = canVote(session) && !data.votes.includes(session.id)}
                 {#if i !== 0}
                   <hr class="hr" />
                 {/if}

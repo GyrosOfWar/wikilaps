@@ -27,7 +27,7 @@ async fn main() -> Result<()> {
     let (router, api) = OpenApiRouter::with_openapi(ApiDocs::openapi())
         .routes(routes!(routes::list_weekends))
         .routes(routes!(routes::init_session))
-        .routes(routes!(routes::create_vote))
+        .routes(routes!(routes::list_user_votes, routes::create_vote))
         .with_state(AppState {
             db: database,
             cookie_secret: config.cookie_secret.into(),
