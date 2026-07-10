@@ -1,15 +1,15 @@
 services:
   frontend:
-    build: ./frontend
+    image: ghcr.io/gyrosofwar/wikilaps-frontend:latest
     ports:
       - "3001:3000"
     environment:
       BACKEND_URL: "http://backend:13252"
     depends_on:
       - backend
-  
+
   backend:
-    build: ./backend
+    image: ghcr.io/gyrosofwar/wikilaps-backend:latest
     environment:
       DATABASE_URL: "postgres://postgres:wikilaps-is-cool@postgres/postgres"
       SERVER_HOST: "0.0.0.0"
