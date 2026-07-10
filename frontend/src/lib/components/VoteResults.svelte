@@ -1,10 +1,7 @@
 <script lang="ts">
   import * as m from "$lib/paraglide/messages";
-  import type { SessionType, VoteCounts } from "$lib/api";
+  import type { SessionType, VoteCounts, VoteType } from "$lib/api";
   import CheckIcon from "@lucide/svelte/icons/check";
-
-  /** Vote type values as serialized by the backend `VoteType` enum. */
-  type VoteType = "FullRace" | "RaceIn30" | "Highlights";
 
   interface Option {
     value: VoteType;
@@ -16,7 +13,6 @@
     votes: VoteCounts;
     sessionType: SessionType;
     interactive?: boolean;
-    /** Called with the selected vote when the user submits (only when interactive). */
     onSubmit?: (vote: VoteType) => void;
   }
 

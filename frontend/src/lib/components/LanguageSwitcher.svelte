@@ -4,7 +4,6 @@
   import CheckIcon from "@lucide/svelte/icons/check";
   import { getLocale, locales, setLocale, type Locale } from "$lib/paraglide/runtime";
 
-  /** Flag (flag-icons country code) and native name for each locale. */
   const localeMeta: Record<Locale, { flag: string; label: string }> = {
     en: { flag: "gb", label: "English" },
     de: { flag: "de", label: "Deutsch" },
@@ -14,7 +13,6 @@
 
   function selectLocale(value: string) {
     if (value === current) return;
-    // Cookie strategy: setLocale writes the cookie and reloads the page.
     setLocale(value as Locale);
   }
 </script>
@@ -36,7 +34,7 @@
         {#each locales as locale (locale)}
           <Menu.Item
             value={locale}
-            class="flex cursor-pointer items-center gap-2 rounded px-3 py-2 data-[highlighted]:preset-tonal-primary"
+            class="flex cursor-pointer items-center gap-2 rounded px-3 py-2 data-highlighted:preset-tonal-primary"
           >
             <span class="fi fi-{localeMeta[locale].flag}"></span>
             <span class="grow">{localeMeta[locale].label}</span>
