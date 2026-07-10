@@ -1,0 +1,22 @@
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "3001:3000"
+    environment:
+      BACKEND_URL: "http://backend:13252"
+  
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: "postgres://postgres:wikilaps-is-cool@postgres/postgres"
+
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_PASSWORD: "wikilaps-is-cool"
+    volumes:
+      - postgres-data:/var/lib/postgresql/
+
+volumes:
+  postgres-data:

@@ -17,6 +17,7 @@ COPY --from=builder /app/build build/
 COPY --from=builder /app/node_modules node_modules/
 COPY --from=builder /app/handler.js .
 COPY package.json .
+
 EXPOSE 3000
 
 ENV NODE_ENV=production
