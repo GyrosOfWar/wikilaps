@@ -31,7 +31,7 @@ jobs:
       - run: cargo fmt --check
 
   check:
-    name: Lint (cargo check)
+    name: Type check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

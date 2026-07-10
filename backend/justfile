@@ -4,3 +4,5 @@ format:
 check:
     cargo fmt --check
     cargo check
+    cargo sqlx prepare --check -- --all-targets
+    
