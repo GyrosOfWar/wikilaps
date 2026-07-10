@@ -38,6 +38,11 @@ export type RaceWeekendResponse = {
   startDate: String;
   year: number;
 };
+export type VoteType = "FullRace" | "RaceIn30" | "Highlights";
+export type VoteRequest = {
+  sessionId: number;
+  vote: VoteType;
+};
 export function listWeekends(year: number, opts?: Oazapfts.RequestOpts) {
   return oazapfts.fetchJson<{
     status: 200;
@@ -69,9 +74,13 @@ export function listUserVotes(opts?: Oazapfts.RequestOpts) {
  * cookie. The `(user_identifier, session_id)` unique constraint means a
  * browser's first vote for a session wins; subsequent votes are ignored.
  */
-export function createVote(opts?: Oazapfts.RequestOpts) {
-  return oazapfts.fetchText("/api/vote", {
-    ...opts,
-    method: "POST",
-  });
+export function createVote(voteRequest: VoteRequest, opts?: Oazapfts.RequestOpts) {
+  return oazapfts.fetchText(
+    "/api/vote",
+    oazapfts.json({
+      ...opts,
+      method: "POST",
+      body: voteRequest,
+    }),
+  );
 }

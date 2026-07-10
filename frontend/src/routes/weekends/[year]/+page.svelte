@@ -2,10 +2,9 @@
   import * as m from "$lib/paraglide/messages";
   import { sessionTypeLabel } from "$lib/i18n.js";
   import VoteResults from "$lib/components/VoteResults.svelte";
-  import LanguageSwitcher from "$lib/components/LanguageSwitcher.svelte";
   import { Temporal } from "temporal-polyfill";
   import { formatDate } from "$lib/date-time.js";
-  import type { SessionResponse } from "$lib/api.js";
+  import { createVote, type SessionResponse } from "$lib/api.js";
   import { invalidateAll } from "$app/navigation";
 
   const { data } = $props();
@@ -13,11 +12,11 @@
   type VoteType = "FullRace" | "RaceIn30" | "Highlights";
 
   async function submitVote(sessionId: number, vote: VoteType) {
-    await fetch("/api/vote", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId, vote }),
-    });
+    const response = await createVote({ sessionId, vote });
+    if (response.status !== 201) {
+      console.error("Failed to submit vote", response);
+      return;
+    }
     await invalidateAll();
   }
 
@@ -37,15 +36,6 @@
 <svelte:head>
   <title>wikilaps</title>
 </svelte:head>
-
-<header class="w-full flex justify-between items-start">
-  <div>
-    <h1 class="h1">{m.app_name()}</h1>
-    <p>{m.welcome_text()}</p>
-  </div>
-
-  <LanguageSwitcher />
-</header>
 
 <section class="grid gap-4 grid-cols-1 mt-6 max-w-3xl self-center w-full">
   {#each data.weekends as weekend (weekend.id)}

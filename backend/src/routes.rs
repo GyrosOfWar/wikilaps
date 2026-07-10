@@ -165,7 +165,7 @@ pub async fn init_session(
     (jar, Json(InitSessionResponse { created: true }))
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct VoteRequest {
     pub session_id: i64,
@@ -183,7 +183,7 @@ pub async fn list_user_votes(state: State<AppState>, user: UserId) -> Result<Jso
 /// cookie. The `(user_identifier, session_id)` unique constraint means a
 /// browser's first vote for a session wins; subsequent votes are ignored.
 #[axum::debug_handler]
-#[utoipa::path(method(post), path = "/api/vote")]
+#[utoipa::path(method(post), path = "/api/vote", request_body = VoteRequest)]
 pub async fn create_vote(
     state: State<AppState>,
     user: UserId,
