@@ -5,11 +5,16 @@ services:
       - "3001:3000"
     environment:
       BACKEND_URL: "http://backend:13252"
+    depends_on:
+      - backend
   
   backend:
     build: ./backend
     environment:
       DATABASE_URL: "postgres://postgres:wikilaps-is-cool@postgres/postgres"
+      SERVER_HOST: "0.0.0.0"
+    depends_on:
+      - postgres
 
   postgres:
     image: postgres:18
