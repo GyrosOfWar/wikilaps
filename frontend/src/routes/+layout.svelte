@@ -12,6 +12,7 @@
 
 <svelte:head>
   <link rel="icon" href={favicon} />
+  <title>wikilaps</title>
 </svelte:head>
 
 <header

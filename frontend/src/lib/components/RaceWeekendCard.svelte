@@ -1,5 +1,6 @@
 <script lang="ts">
-  import type { SessionResponse, RaceWeekendResponse, VoteType } from "$lib/api";
+  import type { ClassValue } from "svelte/elements";
+  import type { SessionResponse, RaceWeekendResponse, VoteType, SessionType } from "$lib/api";
   import { formatDate } from "$lib/date-time";
   import { Temporal } from "temporal-polyfill";
   import VoteResults from "./VoteResults.svelte";
@@ -7,13 +8,20 @@
   import * as m from "$lib/paraglide/messages";
 
   interface Props {
+    class?: ClassValue;
     weekend: RaceWeekendResponse;
     votes: number[];
     year: number;
     onSubmitVote: (sessionId: number, vote: VoteType) => void;
+    sessionTypes?: SessionType[];
   }
 
-  let { weekend, votes, year, onSubmitVote }: Props = $props();
+  let { weekend, votes, year, onSubmitVote, class: klass, sessionTypes }: Props = $props();
+  let sessions = $derived(
+    sessionTypes
+      ? weekend.sessions.filter((s) => sessionTypes.includes(s.sessionType))
+      : weekend.sessions,
+  );
 
   function isInFuture(date: string): boolean {
     const until = Temporal.PlainDate.from(date).until(Temporal.Now.plainDateISO());
@@ -30,16 +38,7 @@
   const future = $derived(isInFuture(weekend.startDate));
 </script>
 
-<div
-  id="round-{weekend.round}"
-  aria-disabled={future}
-  class={[
-    "card border border-surface-200-800 card-hover divide-surface-200-800 block divide-y overflow-hidden",
-    future
-      ? "cursor-not-allowed preset-outlined-surface-100-900 opacity-50"
-      : "preset-filled-surface-100-900",
-  ]}
->
+<div id="round-{weekend.round}" aria-disabled={future} class={["card", klass]}>
   <article class="space-y-4 p-4">
     <div>
       <h2 class="h6 mb-2">
@@ -51,7 +50,7 @@
       </h1>
       {#if !future}
         <section class="space-y-4">
-          {#each weekend.sessions as session, i (session.id)}
+          {#each sessions as session, i (session.id)}
             {@const interactive = canVote(session) && !votes.includes(session.id)}
             {#if i !== 0}
               <hr class="hr" />
