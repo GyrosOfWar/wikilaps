@@ -1,0 +1,8 @@
+procs:
+  backend:
+    cmd: ["cargo", "run"]
+    cwd: "backend"
+
+  frontend:
+    cmd: ["pnpm", "dev"]
+    cwd: "frontend"

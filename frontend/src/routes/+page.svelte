@@ -1,6 +1,9 @@
 <script lang="ts">
   import { resolve } from "$app/paths";
+  import RaceWeekendCard from "$lib/components/RaceWeekendCard.svelte";
   import ArrowRight from "@lucide/svelte/icons/arrow-right";
+
+  const { data } = $props();
 </script>
 
 <section class="max-w-2xl mt-4 self-center">
@@ -9,3 +12,9 @@
     >View 2026 Weekends <ArrowRight />
   </a>
 </section>
+
+{#if data.weekend}
+  <section class="bg-white max-w-lg mt-6 self-center w-full">
+    <RaceWeekendCard weekend={data.weekend} votes={[]} year={2026} onSubmitVote={() => {}} />
+  </section>
+{/if}

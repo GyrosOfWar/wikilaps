@@ -23,3 +23,6 @@ check:
 
 generate:
     just frontend generate
+
+start:
+    mprocs --config etc/services.yaml

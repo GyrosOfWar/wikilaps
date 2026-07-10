@@ -25,6 +25,7 @@ async fn main() -> Result<()> {
     let database = Database::new(&config.database_url).await?;
 
     let (router, api) = OpenApiRouter::with_openapi(ApiDocs::openapi())
+        .routes(routes!(routes::get_latest_weekend))
         .routes(routes!(routes::list_weekends))
         .routes(routes!(routes::init_session))
         .routes(routes!(routes::list_user_votes, routes::create_vote))

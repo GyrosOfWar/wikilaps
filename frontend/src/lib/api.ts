@@ -43,6 +43,14 @@ export type VoteRequest = {
   sessionId: number;
   vote: VoteType;
 };
+export function getLatestWeekend(opts?: Oazapfts.RequestOpts) {
+  return oazapfts.fetchJson<{
+    status: 200;
+    data: null | RaceWeekendResponse;
+  }>("/api/race-weekends/latest", {
+    ...opts,
+  });
+}
 export function listWeekends(year: number, opts?: Oazapfts.RequestOpts) {
   return oazapfts.fetchJson<{
     status: 200;

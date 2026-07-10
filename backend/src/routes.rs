@@ -105,6 +105,21 @@ impl From<SessionWithVotes> for SessionResponse {
 #[axum::debug_handler]
 #[utoipa::path(
     method(get),
+    path = "/api/race-weekends/latest",
+    responses(
+        (status = OK, description = "Success", body = Option<RaceWeekendResponse>)
+    )
+)]
+pub async fn get_latest_weekend(
+    state: State<AppState>,
+) -> Result<Json<Option<RaceWeekendResponse>>> {
+    let closest = state.db.find_last_weekend().await?.map(From::from);
+    Ok(Json(closest))
+}
+
+#[axum::debug_handler]
+#[utoipa::path(
+    method(get),
     path = "/api/race-weekends/{year}",
     params(
         ("year" = i32, Path),

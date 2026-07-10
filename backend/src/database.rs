@@ -66,6 +66,66 @@ impl Database {
         Ok(Self { db })
     }
 
+    pub async fn find_last_weekend(&self) -> Result<Option<RaceWeekend>> {
+        let rows = sqlx::query!(
+            r#"WITH last_weekend AS (
+                    SELECT id FROM race_weekend WHERE start_date < now() ORDER BY start_date DESC LIMIT 1
+                )
+                SELECT
+                    r.id AS weekend_id, r.year, r.location, r.circuit_full_name, r.grand_prix_id, r.country_key,
+                    r.start_date AS "start_date: jiff_sqlx::Date", r.round, r.official_name,
+                    s.id AS "session_id?",
+                    s.session_type AS "session_type?: SessionType",
+                    s.start_time AS "start_time?: jiff_sqlx::Timestamp",
+                    s.end_time AS "end_time?: jiff_sqlx::Timestamp",
+                    count(v.id) FILTER (WHERE v.vote_type = 'FullRace'::vote_type)   AS "full_race!",
+                    count(v.id) FILTER (WHERE v.vote_type = 'RaceIn30'::vote_type)   AS "race_in_30!",
+                    count(v.id) FILTER (WHERE v.vote_type = 'Highlights'::vote_type) AS "highlights!"
+                FROM race_weekend r
+                JOIN last_weekend lw ON lw.id = r.id
+                LEFT JOIN session s ON s.weekend_id = r.id
+                LEFT JOIN votes v ON v.session_id = s.id
+                GROUP BY r.id, s.id
+                ORDER BY s.start_time ASC NULLS FIRST"#
+        )
+        .fetch_all(&self.db)
+        .await?;
+
+        let mut weekend: Option<RaceWeekend> = None;
+        for row in rows {
+            let weekend = weekend.get_or_insert_with(|| RaceWeekend {
+                id: row.weekend_id,
+                year: row.year,
+                location: row.location.clone(),
+                official_name: row.official_name.clone(),
+                circuit_full_name: row.circuit_full_name.clone(),
+                grand_prix_id: row.grand_prix_id.clone(),
+                country_key: row.country_key.clone(),
+                start_date: row.start_date,
+                round: row.round,
+                sessions: Vec::new(),
+            });
+
+            // A null `session_id` means this weekend has no sessions (the LEFT
+            // JOIN produced a single all-null session row); skip it.
+            if let Some(session_id) = row.session_id {
+                weekend.sessions.push(SessionWithVotes {
+                    id: session_id,
+                    session_type: row.session_type.expect("session_id implies session_type"),
+                    start_time: row.start_time.expect("session_id implies start_time"),
+                    end_time: row.end_time,
+                    votes: VoteCounts {
+                        full_race: row.full_race,
+                        race_in_30: row.race_in_30,
+                        highlights: row.highlights,
+                    },
+                });
+            }
+        }
+
+        Ok(weekend)
+    }
+
     pub async fn list_weekends(&self, year: i32) -> Result<Vec<RaceWeekend>> {
         let rows = sqlx::query!(
             r#"SELECT
@@ -235,6 +295,15 @@ mod tests {
     }
 
     async fn seed_weekend(db: &Database, year: i32, round: i32) -> i64 {
+        seed_weekend_with_date(db, year, round, date(year as i16, 9, round as i8)).await
+    }
+
+    async fn seed_weekend_with_date(
+        db: &Database,
+        year: i32,
+        round: i32,
+        start_date: jiff::civil::Date,
+    ) -> i64 {
         db.upsert_race_weekend(
             year,
             round,
@@ -244,7 +313,7 @@ mod tests {
             "emilia-romagna",
             "ITA",
             "Formula 1 AWS Gran Premio del Made in Italy e dell'Emilia Romagna 2025",
-            jiff_sqlx::Date::from(date(year as i16, 9, round as i8)),
+            jiff_sqlx::Date::from(start_date),
         )
         .await
         .unwrap()
@@ -464,5 +533,96 @@ mod tests {
             .unwrap()
             .unwrap();
         assert_eq!(count, 1);
+    }
+
+    #[sqlx::test]
+    async fn find_last_weekend_returns_none_when_empty(pool: PgPool) {
+        let db = db(pool);
+        assert!(db.find_last_weekend().await.unwrap().is_none());
+    }
+
+    #[sqlx::test]
+    async fn find_last_weekend_returns_none_when_no_weekend_has_elapsed(pool: PgPool) {
+        let db = db(pool);
+        seed_weekend_with_date(&db, 2099, 1, date(2099, 9, 1)).await;
+
+        assert!(db.find_last_weekend().await.unwrap().is_none());
+    }
+
+    #[sqlx::test]
+    async fn find_last_weekend_ignores_future_weekends(pool: PgPool) {
+        let db = db(pool);
+        let past_id = seed_weekend_with_date(&db, 2020, 1, date(2020, 9, 1)).await;
+        seed_weekend_with_date(&db, 2099, 1, date(2099, 9, 1)).await;
+
+        let weekend = db.find_last_weekend().await.unwrap().unwrap();
+        assert_eq!(weekend.id, past_id);
+    }
+
+    #[sqlx::test]
+    async fn find_last_weekend_returns_the_most_recent_elapsed_weekend(pool: PgPool) {
+        let db = db(pool);
+        seed_weekend_with_date(&db, 2020, 1, date(2020, 9, 1)).await;
+        let recent_id = seed_weekend_with_date(&db, 2024, 1, date(2024, 9, 1)).await;
+
+        let weekend = db.find_last_weekend().await.unwrap().unwrap();
+        assert_eq!(weekend.id, recent_id);
+        assert_eq!(weekend.year, 2024);
+    }
+
+    #[sqlx::test]
+    async fn find_last_weekend_includes_weekend_without_sessions(pool: PgPool) {
+        let db = db(pool);
+        let id = seed_weekend_with_date(&db, 2024, 1, date(2024, 9, 1)).await;
+
+        let weekend = db.find_last_weekend().await.unwrap().unwrap();
+        assert_eq!(weekend.id, id);
+        assert!(weekend.sessions.is_empty());
+    }
+
+    #[sqlx::test]
+    async fn find_last_weekend_includes_all_sessions_and_votes(pool: PgPool) {
+        let db = db(pool);
+        let weekend_id = seed_weekend_with_date(&db, 2024, 1, date(2024, 9, 1)).await;
+        db.upsert_session(
+            weekend_id,
+            SessionType::Qualifying,
+            jiff_sqlx::Timestamp::from("2024-09-01T13:00:00Z".parse::<JiffTimestamp>().unwrap()),
+        )
+        .await
+        .unwrap();
+        db.upsert_session(
+            weekend_id,
+            SessionType::Race,
+            jiff_sqlx::Timestamp::from("2024-09-02T13:00:00Z".parse::<JiffTimestamp>().unwrap()),
+        )
+        .await
+        .unwrap();
+        let session_ids: Vec<i64> =
+            sqlx::query_scalar!("SELECT id FROM session ORDER BY start_time ASC")
+                .fetch_all(&db.db)
+                .await
+                .unwrap();
+        assert_eq!(session_ids.len(), 2);
+        let (qualifying_id, race_id) = (session_ids[0], session_ids[1]);
+
+        db.insert_vote("u1", race_id, VoteType::FullRace)
+            .await
+            .unwrap();
+        db.insert_vote("u2", race_id, VoteType::FullRace)
+            .await
+            .unwrap();
+        db.insert_vote("u3", race_id, VoteType::Highlights)
+            .await
+            .unwrap();
+
+        let weekend = db.find_last_weekend().await.unwrap().unwrap();
+        assert_eq!(weekend.id, weekend_id);
+        assert_eq!(weekend.sessions.len(), 2);
+        assert_eq!(weekend.sessions[0].id, qualifying_id);
+        assert_eq!(weekend.sessions[0].votes.full_race, 0);
+        assert_eq!(weekend.sessions[1].id, race_id);
+        assert_eq!(weekend.sessions[1].votes.full_race, 2);
+        assert_eq!(weekend.sessions[1].votes.highlights, 1);
     }
 }
