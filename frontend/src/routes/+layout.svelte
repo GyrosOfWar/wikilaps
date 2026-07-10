@@ -6,6 +6,7 @@
 
   import LanguageSwitcher from "$lib/components/LanguageSwitcher.svelte";
   import { m } from "$lib/paraglide/messages";
+  import FlagIcon from "@lucide/svelte/icons/flag";
 
   let { children } = $props();
 </script>
@@ -19,18 +20,23 @@
   class="z-50 sticky top-0 border-b border-surface-200-800 bg-surface-50-950/75 backdrop-blur-lg h-(--header-height) flex items-center"
 >
   <div class="container mx-auto p-4 flex items-center justify-between gap-2">
-    <h1 class="h4">
-      <a href={resolve("/")}>
-        {m.app_name()}
+    <a href={resolve("/")} class="flex items-center gap-2.5">
+      <span
+        class="grid place-items-center size-9 rounded-lg preset-filled-primary-500 shadow-sm shadow-primary-500/30"
+      >
+        <FlagIcon class="size-5" />
+      </span>
+      <span class="h4 font-bold tracking-tight">{m.app_name()}</span>
+    </a>
+    <nav class="flex items-center gap-2">
+      <a href={resolve("/races/2026")} class="btn preset-tonal-surface hover:preset-tonal-primary">
+        {m.nav_entry_races()}
       </a>
-    </h1>
-    <nav class="flex gap-4">
-      <a href={resolve("/weekends/2026")} class="btn hover:preset-tonal">Weekends</a>
       <LanguageSwitcher />
     </nav>
   </div>
 </header>
 
-<main class="container mx-auto mt-4 flex flex-col">
+<main class="container mx-auto mt-4 flex flex-col px-4">
   {@render children()}
 </main>

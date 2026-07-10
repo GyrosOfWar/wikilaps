@@ -44,5 +44,9 @@
   "gp_sao_paulo": "São Paulo Grand Prix",
   "gp_singapore": "Singapore Grand Prix",
   "gp_spain": "Spanish Grand Prix",
-  "gp_united_states": "United States Grand Prix"
+  "gp_united_states": "United States Grand Prix",
+  "weekend_page_heading": "Season {year}",
+  "nav_entry_races": "Races",
+  "hero_heading": "Community ratings for Formula 1 sessions.",
+  "hero_sub_heading": "Inspired by the excellent {#link to=|https://wikihoops.com|}wikihoops{/link}."
 }

@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@inlang/paraglide-js-svelte':
+        specifier: ^1.0.3
+        version: 1.0.3(@inlang/paraglide-js@2.20.2(typescript@6.0.3))(svelte@5.56.4(@typescript-eslint/types@8.62.1))
       '@lucide/svelte':
         specifier: ^1.23.0
         version: 1.23.0(svelte@5.56.4(@typescript-eslint/types@8.62.1))
@@ -200,6 +203,12 @@ packages:
   '@humanwhocodes/retry@0.4.3':
     resolution: {integrity: sha512-bV0Tgo9K4hfPCek+aMAn81RppFKv2ySDQeMoSZuvTASywNTnVJCArCZE2FWqpvIatKu7VMRLWlR1EazvVhDyhQ==}
     engines: {node: '>=18.18'}
+
+  '@inlang/paraglide-js-svelte@1.0.3':
+    resolution: {integrity: sha512-K65UnMaVy5z8+VqhBpX6Mt4dt7wxLFupejQ+sQTSga6Wh5bL7rnUq9ZU3Tn2OIk1Uah7scw9GHVZxSqhjJrWzA==}
+    peerDependencies:
+      '@inlang/paraglide-js': '>=2.11.0 <3'
+      svelte: ^5.0.0
 
   '@inlang/paraglide-js@2.20.2':
     resolution: {integrity: sha512-V8iY3uu/vQU94gEag1bdC3glMJSp4Dg3XMwfnabZLBh1Dv0F++DvDYlMeniqv2+nHbnS/twB75AM140OmpHDEg==}
@@ -1853,6 +1862,11 @@ snapshots:
   '@humanwhocodes/module-importer@1.0.1': {}
 
   '@humanwhocodes/retry@0.4.3': {}
+
+  '@inlang/paraglide-js-svelte@1.0.3(@inlang/paraglide-js@2.20.2(typescript@6.0.3))(svelte@5.56.4(@typescript-eslint/types@8.62.1))':
+    dependencies:
+      '@inlang/paraglide-js': 2.20.2(typescript@6.0.3)
+      svelte: 5.56.4(@typescript-eslint/types@8.62.1)
 
   '@inlang/paraglide-js@2.20.2(typescript@6.0.3)':
     dependencies:
