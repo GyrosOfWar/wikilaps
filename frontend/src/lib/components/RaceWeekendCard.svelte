@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { ClassValue } from "svelte/elements";
-  import type { SessionResponse, RaceWeekendResponse, VoteType, SessionType } from "$lib/api";
+  import type { SessionResponse, RaceWeekendResponse, VoteType } from "$lib/api";
   import { formatDate } from "$lib/date-time";
   import { Temporal } from "temporal-polyfill";
   import VoteResults from "./VoteResults.svelte";
@@ -13,15 +13,9 @@
     votes: number[];
     year: number;
     onSubmitVote: (sessionId: number, vote: VoteType) => void;
-    sessionTypes?: SessionType[];
   }
 
-  let { weekend, votes, year, onSubmitVote, class: klass, sessionTypes }: Props = $props();
-  let sessions = $derived(
-    sessionTypes
-      ? weekend.sessions.filter((s) => sessionTypes.includes(s.sessionType))
-      : weekend.sessions,
-  );
+  let { weekend, votes, year, onSubmitVote, class: klass }: Props = $props();
 
   function isInFuture(date: string): boolean {
     const until = Temporal.PlainDate.from(date).until(Temporal.Now.plainDateISO());
@@ -50,7 +44,7 @@
       </h1>
       {#if !future}
         <section class="space-y-4">
-          {#each sessions as session, i (session.id)}
+          {#each weekend.sessions as session, i (session.id)}
             {@const interactive = canVote(session) && !votes.includes(session.id)}
             {#if i !== 0}
               <hr class="hr" />

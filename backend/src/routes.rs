@@ -113,7 +113,20 @@ impl From<SessionWithVotes> for SessionResponse {
 pub async fn get_latest_weekend(
     state: State<AppState>,
 ) -> Result<Json<Option<RaceWeekendResponse>>> {
-    let closest = state.db.find_last_weekend().await?.map(From::from);
+    let mut closest = state
+        .db
+        .find_last_weekend()
+        .await?
+        .map(RaceWeekendResponse::from);
+    let now = Timestamp::now();
+    // only send the last elapsed session
+    if let Some(ref mut weekend) = closest {
+        weekend.sessions.retain(|s| s.start_time < now);
+        if !weekend.sessions.is_empty() {
+            weekend.sessions = vec![weekend.sessions.pop().unwrap()];
+        }
+    }
+
     Ok(Json(closest))
 }
 
