@@ -11,8 +11,17 @@
   "vote_type_full_session": "Die ganze Session",
   "vote_type_race_in_30": "Rennen in 30 Minuten",
   "vote_type_highlights": "Highlights",
-  "poll_total_votes": "{n} Stimmen",
-  "poll_no_votes": "Noch keine Stimmen",
+  "poll_total_votes": [
+    {
+      "declarations": ["input count", "local countPlural = count: plural"],
+      "selectors": ["countPlural"],
+      "match": {
+        "countPlural=zero": "Noch keine Stimmen",
+        "countPlural=one": "Eine Stimme",
+        "countPlural=other": "{count} Stimmen"
+      }
+    }
+  ],
   "vote_submit": "Abstimmen",
   "gp_abu_dhabi": "Großer Preis von Abu Dhabi",
   "gp_australia": "Großer Preis von Australien",

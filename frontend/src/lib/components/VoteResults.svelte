@@ -87,7 +87,7 @@
     {/each}
 
     <p class="pt-0.5 text-xs opacity-60">
-      {total > 0 ? m.poll_total_votes({ n: total }) : m.poll_no_votes()}
+      {m.poll_total_votes({ count: total })}
     </p>
   </div>
 {/snippet}
