@@ -32,7 +32,13 @@
   function grandPrixName(grandPrixId: string) {
     const id = `gp_${grandPrixId.replace("-", "_")}`;
     // @ts-expect-error dynamic key but it's generally fine
-    return m[id]();
+    const fn = m[id];
+    if (fn) {
+      return fn();
+    } else {
+      console.warn(`No translation key found for input '${id}', falling back to ID`);
+      return grandPrixId;
+    }
   }
 
   const future = $derived(isInFuture(weekend.startDate));
