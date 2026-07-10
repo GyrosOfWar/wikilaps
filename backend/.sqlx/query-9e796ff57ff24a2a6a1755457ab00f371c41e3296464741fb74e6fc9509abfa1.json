@@ -1,0 +1,205 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT\n                    r.id AS weekend_id, r.year, r.location, r.circuit_full_name, r.grand_prix_id, r.country_key,\n                    r.start_date AS \"start_date: jiff_sqlx::Date\", r.round, r.official_name,\n                    s.id AS \"session_id?\",\n                    s.session_type AS \"session_type?: SessionType\",\n                    s.start_time AS \"start_time?: jiff_sqlx::Timestamp\",\n                    s.end_time AS \"end_time?: jiff_sqlx::Timestamp\",\n                    count(v.id) FILTER (WHERE v.vote_type = 'FullRace'::vote_type)   AS \"full_race!\",\n                    count(v.id) FILTER (WHERE v.vote_type = 'RaceIn30'::vote_type)   AS \"race_in_30!\",\n                    count(v.id) FILTER (WHERE v.vote_type = 'Highlights'::vote_type) AS \"highlights!\"\n                FROM race_weekend r\n                LEFT JOIN session s ON s.weekend_id = r.id\n                LEFT JOIN votes v ON v.session_id = s.id\n                WHERE r.year = $1\n                GROUP BY r.id, s.id\n                ORDER BY r.start_date ASC, r.id ASC, s.start_time ASC NULLS FIRST",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "weekend_id",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "race_weekend",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "year",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "race_weekend",
+            "name": "year"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "location",
+        "type_info": "Varchar",
+        "origin": {
+          "Table": {
+            "table": "race_weekend",
+            "name": "location"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "circuit_full_name",
+        "type_info": "Varchar",
+        "origin": {
+          "Table": {
+            "table": "race_weekend",
+            "name": "circuit_full_name"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "grand_prix_id",
+        "type_info": "Varchar",
+        "origin": {
+          "Table": {
+            "table": "race_weekend",
+            "name": "grand_prix_id"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "country_key",
+        "type_info": "Varchar",
+        "origin": {
+          "Table": {
+            "table": "race_weekend",
+            "name": "country_key"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "start_date: jiff_sqlx::Date",
+        "type_info": "Date",
+        "origin": {
+          "Table": {
+            "table": "race_weekend",
+            "name": "start_date"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "round",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "race_weekend",
+            "name": "round"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "official_name",
+        "type_info": "Varchar",
+        "origin": {
+          "Table": {
+            "table": "race_weekend",
+            "name": "official_name"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "session_id?",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "session",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 10,
+        "name": "session_type?: SessionType",
+        "type_info": {
+          "Custom": {
+            "name": "session_type",
+            "kind": {
+              "Enum": [
+                "sprint_qualifying",
+                "sprint_race",
+                "qualifying",
+                "race"
+              ]
+            }
+          }
+        },
+        "origin": {
+          "Table": {
+            "table": "session",
+            "name": "session_type"
+          }
+        }
+      },
+      {
+        "ordinal": 11,
+        "name": "start_time?: jiff_sqlx::Timestamp",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "session",
+            "name": "start_time"
+          }
+        }
+      },
+      {
+        "ordinal": 12,
+        "name": "end_time?: jiff_sqlx::Timestamp",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "session",
+            "name": "end_time"
+          }
+        }
+      },
+      {
+        "ordinal": 13,
+        "name": "full_race!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 14,
+        "name": "race_in_30!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 15,
+        "name": "highlights!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      null,
+      null,
+      null
+    ]
+  },
+  "hash": "9e796ff57ff24a2a6a1755457ab00f371c41e3296464741fb74e6fc9509abfa1"
+}

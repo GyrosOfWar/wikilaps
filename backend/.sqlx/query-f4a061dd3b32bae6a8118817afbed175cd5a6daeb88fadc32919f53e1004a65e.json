@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO session (weekend_id, session_type, start_time)\n                VALUES ($1, $2, $3)\n                ON CONFLICT (weekend_id, session_type, start_time) DO NOTHING",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int8",
+        {
+          "Custom": {
+            "name": "session_type",
+            "kind": {
+              "Enum": [
+                "sprint_qualifying",
+                "sprint_race",
+                "qualifying",
+                "race"
+              ]
+            }
+          }
+        },
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "f4a061dd3b32bae6a8118817afbed175cd5a6daeb88fadc32919f53e1004a65e"
+}

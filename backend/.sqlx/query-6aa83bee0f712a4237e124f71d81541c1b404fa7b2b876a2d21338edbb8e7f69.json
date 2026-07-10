@@ -1,0 +1,27 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO votes (vote_type, user_identifier, session_id)\n                VALUES ($1, $2, $3)\n            ON CONFLICT (user_identifier, session_id) DO NOTHING",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        {
+          "Custom": {
+            "name": "vote_type",
+            "kind": {
+              "Enum": [
+                "FullRace",
+                "RaceIn30",
+                "Highlights"
+              ]
+            }
+          }
+        },
+        "Varchar",
+        "Int8"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "6aa83bee0f712a4237e124f71d81541c1b404fa7b2b876a2d21338edbb8e7f69"
+}
