@@ -32,7 +32,6 @@
       <RaceWeekendCard
         {weekend}
         class="preset-filled-surface-50-950 border border-surface-200-800 shadow-xl"
-        votes={data.votes}
         onSubmitVote={submitVote}
       />
     {/each}

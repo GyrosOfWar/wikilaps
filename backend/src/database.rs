@@ -43,6 +43,7 @@ pub struct SessionWithVotes {
     pub start_time: jiff_sqlx::Timestamp,
     pub end_time: Option<jiff_sqlx::Timestamp>,
     pub votes: VoteCounts,
+    pub user_vote: Option<VoteType>,
 }
 
 /// Tally of votes for a single session, one count per `vote_type`.
@@ -66,7 +67,7 @@ impl Database {
         Ok(Self { db })
     }
 
-    pub async fn find_last_weekend(&self) -> Result<Option<RaceWeekend>> {
+    pub async fn find_last_weekend(&self, user_id: Option<&str>) -> Result<Option<RaceWeekend>> {
         let rows = sqlx::query!(
             r#"WITH last_weekend AS (
                     SELECT id FROM race_weekend WHERE start_date < now() ORDER BY start_date DESC LIMIT 1
@@ -80,13 +81,15 @@ impl Database {
                     s.end_time AS "end_time?: jiff_sqlx::Timestamp",
                     count(v.id) FILTER (WHERE v.vote_type = 'FullRace'::vote_type)   AS "full_race!",
                     count(v.id) FILTER (WHERE v.vote_type = 'RaceIn30'::vote_type)   AS "race_in_30!",
-                    count(v.id) FILTER (WHERE v.vote_type = 'Highlights'::vote_type) AS "highlights!"
+                    count(v.id) FILTER (WHERE v.vote_type = 'Highlights'::vote_type) AS "highlights!",
+                    max(v.vote_type) FILTER (WHERE v.user_identifier = $1) AS "user_vote?: VoteType"
                 FROM race_weekend r
                 JOIN last_weekend lw ON lw.id = r.id
                 LEFT JOIN session s ON s.weekend_id = r.id
                 LEFT JOIN votes v ON v.session_id = s.id
                 GROUP BY r.id, s.id
-                ORDER BY s.start_time ASC NULLS FIRST"#
+                ORDER BY s.start_time ASC NULLS FIRST"#,
+            user_id
         )
         .fetch_all(&self.db)
         .await?;
@@ -119,6 +122,7 @@ impl Database {
                         race_in_30: row.race_in_30,
                         highlights: row.highlights,
                     },
+                    user_vote: row.user_vote,
                 });
             }
         }
@@ -126,7 +130,11 @@ impl Database {
         Ok(weekend)
     }
 
-    pub async fn list_weekends(&self, year: i32) -> Result<Vec<RaceWeekend>> {
+    pub async fn list_weekends(
+        &self,
+        year: i32,
+        user_id: Option<&str>,
+    ) -> Result<Vec<RaceWeekend>> {
         let rows = sqlx::query!(
             r#"SELECT
                     r.id AS weekend_id, r.year, r.location, r.circuit_full_name, r.grand_prix_id, r.country_key,
@@ -137,14 +145,16 @@ impl Database {
                     s.end_time AS "end_time?: jiff_sqlx::Timestamp",
                     count(v.id) FILTER (WHERE v.vote_type = 'FullRace'::vote_type)   AS "full_race!",
                     count(v.id) FILTER (WHERE v.vote_type = 'RaceIn30'::vote_type)   AS "race_in_30!",
-                    count(v.id) FILTER (WHERE v.vote_type = 'Highlights'::vote_type) AS "highlights!"
+                    count(v.id) FILTER (WHERE v.vote_type = 'Highlights'::vote_type) AS "highlights!",
+                    max(v.vote_type) FILTER (WHERE v.user_identifier = $2) AS "user_vote?: VoteType"
                 FROM race_weekend r
                 LEFT JOIN session s ON s.weekend_id = r.id
                 LEFT JOIN votes v ON v.session_id = s.id
                 WHERE r.year = $1
                 GROUP BY r.id, s.id
                 ORDER BY r.start_date ASC, r.id ASC, s.start_time ASC NULLS FIRST"#,
-            year
+            year,
+            user_id
         )
         .fetch_all(&self.db)
         .await?;
@@ -180,21 +190,12 @@ impl Database {
                         race_in_30: row.race_in_30,
                         highlights: row.highlights,
                     },
+                    user_vote: row.user_vote,
                 });
             }
         }
 
         Ok(weekends)
-    }
-
-    pub async fn list_voted_sessions_for_user(&self, user_id: &str) -> Result<Vec<i64>> {
-        sqlx::query_scalar!(
-            "SELECT session_id FROM votes WHERE user_identifier = $1",
-            user_id
-        )
-        .fetch_all(&self.db)
-        .await
-        .map_err(From::from)
     }
 
     /// Inserts a race weekend, or updates it in place if one with the same
@@ -322,7 +323,7 @@ mod tests {
     #[sqlx::test]
     async fn list_weekends_empty(pool: PgPool) {
         let db = db(pool);
-        let weekends = db.list_weekends(2024).await.unwrap();
+        let weekends = db.list_weekends(2024, None).await.unwrap();
         assert!(weekends.is_empty());
     }
 
@@ -332,7 +333,7 @@ mod tests {
         seed_weekend(&db, 2023, 1).await;
         seed_weekend(&db, 2024, 1).await;
 
-        let weekends = db.list_weekends(2024).await.unwrap();
+        let weekends = db.list_weekends(2024, None).await.unwrap();
         assert_eq!(weekends.len(), 1);
         assert_eq!(weekends[0].year, 2024);
     }
@@ -343,7 +344,7 @@ mod tests {
         seed_weekend(&db, 2024, 1).await;
         seed_weekend(&db, 2024, 2).await;
 
-        let weekends = db.list_weekends(2024).await.unwrap();
+        let weekends = db.list_weekends(2024, None).await.unwrap();
         assert_eq!(weekends.len(), 2);
         assert_eq!(weekends[0].round, 1);
         assert_eq!(weekends[1].round, 2);
@@ -375,7 +376,7 @@ mod tests {
             .await
             .unwrap();
 
-        let weekends = db.list_weekends(2024).await.unwrap();
+        let weekends = db.list_weekends(2024, None).await.unwrap();
         assert_eq!(weekends.len(), 1);
         let sessions = &weekends[0].sessions;
         assert_eq!(sessions.len(), 1);
@@ -386,11 +387,64 @@ mod tests {
     }
 
     #[sqlx::test]
+    async fn list_weekends_reports_requesting_users_own_vote(pool: PgPool) {
+        let db = db(pool);
+        let weekend_id = seed_weekend(&db, 2024, 1).await;
+        db.upsert_session(
+            weekend_id,
+            SessionType::Qualifying,
+            jiff_sqlx::Timestamp::from("2024-09-01T13:00:00Z".parse::<JiffTimestamp>().unwrap()),
+        )
+        .await
+        .unwrap();
+        db.upsert_session(
+            weekend_id,
+            SessionType::Race,
+            jiff_sqlx::Timestamp::from("2024-09-02T13:00:00Z".parse::<JiffTimestamp>().unwrap()),
+        )
+        .await
+        .unwrap();
+        let session_ids: Vec<i64> =
+            sqlx::query_scalar!("SELECT id FROM session ORDER BY start_time ASC")
+                .fetch_all(&db.db)
+                .await
+                .unwrap();
+        let (qualifying_id, race_id) = (session_ids[0], session_ids[1]);
+
+        db.insert_vote("me", race_id, VoteType::FullRace)
+            .await
+            .unwrap();
+        db.insert_vote("someone-else", qualifying_id, VoteType::Highlights)
+            .await
+            .unwrap();
+
+        // Anonymous request: no session carries the user's own vote.
+        let anon = db.list_weekends(2024, None).await.unwrap();
+        assert!(anon[0].sessions.iter().all(|s| s.user_vote.is_none()));
+
+        // "me" only sees their own vote on the race, not the other user's.
+        let mine = db.list_weekends(2024, Some("me")).await.unwrap();
+        let sessions = &mine[0].sessions;
+        assert!(matches!(
+            sessions.iter().find(|s| s.id == race_id).unwrap().user_vote,
+            Some(VoteType::FullRace)
+        ));
+        assert!(
+            sessions
+                .iter()
+                .find(|s| s.id == qualifying_id)
+                .unwrap()
+                .user_vote
+                .is_none()
+        );
+    }
+
+    #[sqlx::test]
     async fn list_weekends_includes_weekend_without_sessions(pool: PgPool) {
         let db = db(pool);
         seed_weekend(&db, 2024, 1).await;
 
-        let weekends = db.list_weekends(2024).await.unwrap();
+        let weekends = db.list_weekends(2024, None).await.unwrap();
         assert_eq!(weekends.len(), 1);
         assert!(weekends[0].sessions.is_empty());
     }
@@ -400,7 +454,7 @@ mod tests {
         let db = db(pool);
         let id = seed_weekend(&db, 2024, 1).await;
 
-        let weekends = db.list_weekends(2024).await.unwrap();
+        let weekends = db.list_weekends(2024, None).await.unwrap();
         assert_eq!(weekends.len(), 1);
         assert_eq!(weekends[0].id, id);
         assert_eq!(weekends[0].location, "Monza");
@@ -428,7 +482,7 @@ mod tests {
 
         assert_eq!(id, updated_id);
 
-        let weekends = db.list_weekends(2024).await.unwrap();
+        let weekends = db.list_weekends(2024, None).await.unwrap();
         assert_eq!(weekends.len(), 1);
         assert_eq!(weekends[0].location, "Imola");
     }
@@ -538,7 +592,7 @@ mod tests {
     #[sqlx::test]
     async fn find_last_weekend_returns_none_when_empty(pool: PgPool) {
         let db = db(pool);
-        assert!(db.find_last_weekend().await.unwrap().is_none());
+        assert!(db.find_last_weekend(None).await.unwrap().is_none());
     }
 
     #[sqlx::test]
@@ -546,7 +600,7 @@ mod tests {
         let db = db(pool);
         seed_weekend_with_date(&db, 2099, 1, date(2099, 9, 1)).await;
 
-        assert!(db.find_last_weekend().await.unwrap().is_none());
+        assert!(db.find_last_weekend(None).await.unwrap().is_none());
     }
 
     #[sqlx::test]
@@ -555,7 +609,7 @@ mod tests {
         let past_id = seed_weekend_with_date(&db, 2020, 1, date(2020, 9, 1)).await;
         seed_weekend_with_date(&db, 2099, 1, date(2099, 9, 1)).await;
 
-        let weekend = db.find_last_weekend().await.unwrap().unwrap();
+        let weekend = db.find_last_weekend(None).await.unwrap().unwrap();
         assert_eq!(weekend.id, past_id);
     }
 
@@ -565,7 +619,7 @@ mod tests {
         seed_weekend_with_date(&db, 2020, 1, date(2020, 9, 1)).await;
         let recent_id = seed_weekend_with_date(&db, 2024, 1, date(2024, 9, 1)).await;
 
-        let weekend = db.find_last_weekend().await.unwrap().unwrap();
+        let weekend = db.find_last_weekend(None).await.unwrap().unwrap();
         assert_eq!(weekend.id, recent_id);
         assert_eq!(weekend.year, 2024);
     }
@@ -575,7 +629,7 @@ mod tests {
         let db = db(pool);
         let id = seed_weekend_with_date(&db, 2024, 1, date(2024, 9, 1)).await;
 
-        let weekend = db.find_last_weekend().await.unwrap().unwrap();
+        let weekend = db.find_last_weekend(None).await.unwrap().unwrap();
         assert_eq!(weekend.id, id);
         assert!(weekend.sessions.is_empty());
     }
@@ -616,7 +670,7 @@ mod tests {
             .await
             .unwrap();
 
-        let weekend = db.find_last_weekend().await.unwrap().unwrap();
+        let weekend = db.find_last_weekend(None).await.unwrap().unwrap();
         assert_eq!(weekend.id, weekend_id);
         assert_eq!(weekend.sessions.len(), 2);
         assert_eq!(weekend.sessions[0].id, qualifying_id);

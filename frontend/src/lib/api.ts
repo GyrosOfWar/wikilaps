@@ -14,6 +14,7 @@ const oazapfts = Oazapfts.runtime(defaults);
 export const servers = {};
 export type String = string;
 export type SessionType = "sprint_qualifying" | "sprint_race" | "qualifying" | "race";
+export type VoteType = "FullRace" | "RaceIn30" | "Highlights";
 export type VoteCounts = {
   full: number;
   highlights: number;
@@ -24,6 +25,7 @@ export type SessionResponse = {
   id: number;
   sessionType: SessionType;
   startTime: String;
+  userVote?: null | VoteType;
   votes: VoteCounts;
 };
 export type RaceWeekendResponse = {
@@ -38,7 +40,6 @@ export type RaceWeekendResponse = {
   startDate: String;
   year: number;
 };
-export type VoteType = "FullRace" | "RaceIn30" | "Highlights";
 export type VoteRequest = {
   sessionId: number;
   vote: VoteType;
@@ -66,14 +67,6 @@ export function listWeekends(year: number, opts?: Oazapfts.RequestOpts) {
  */
 export function initSession(opts?: Oazapfts.RequestOpts) {
   return oazapfts.fetchText("/api/session", {
-    ...opts,
-  });
-}
-export function listUserVotes(opts?: Oazapfts.RequestOpts) {
-  return oazapfts.fetchJson<{
-    status: 200;
-    data: number[];
-  }>("/api/vote", {
     ...opts,
   });
 }

@@ -40,7 +40,6 @@
     <p class="mb-3 text-xs font-bold uppercase tracking-widest text-primary-500">Latest session</p>
     <RaceWeekendCard
       weekend={data.weekend}
-      votes={[]}
       onSubmitVote={submitVote}
       class="preset-filled-surface-50-950 border border-surface-200-800 shadow-xl"
     />

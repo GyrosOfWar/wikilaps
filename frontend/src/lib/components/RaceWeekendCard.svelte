@@ -10,11 +10,10 @@
   interface Props {
     class?: ClassValue;
     weekend: RaceWeekendResponse;
-    votes: number[];
     onSubmitVote: (sessionId: number, vote: VoteType) => void;
   }
 
-  let { weekend, votes, onSubmitVote, class: klass }: Props = $props();
+  let { weekend, onSubmitVote, class: klass }: Props = $props();
 
   function isInFuture(date: string): boolean {
     const until = Temporal.PlainDate.from(date).until(Temporal.Now.plainDateISO());
@@ -71,7 +70,7 @@
     {:else}
       <section class="space-y-4">
         {#each weekend.sessions as session, i (session.id)}
-          {@const interactive = canVote(session) && !votes.includes(session.id)}
+          {@const interactive = canVote(session) && !session.userVote}
           {#if i !== 0}
             <hr class="hr" />
           {/if}

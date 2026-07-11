@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT\n                    r.id AS weekend_id, r.year, r.location, r.circuit_full_name, r.grand_prix_id, r.country_key,\n                    r.start_date AS \"start_date: jiff_sqlx::Date\", r.round, r.official_name,\n                    s.id AS \"session_id?\",\n                    s.session_type AS \"session_type?: SessionType\",\n                    s.start_time AS \"start_time?: jiff_sqlx::Timestamp\",\n                    s.end_time AS \"end_time?: jiff_sqlx::Timestamp\",\n                    count(v.id) FILTER (WHERE v.vote_type = 'FullRace'::vote_type)   AS \"full_race!\",\n                    count(v.id) FILTER (WHERE v.vote_type = 'RaceIn30'::vote_type)   AS \"race_in_30!\",\n                    count(v.id) FILTER (WHERE v.vote_type = 'Highlights'::vote_type) AS \"highlights!\"\n                FROM race_weekend r\n                LEFT JOIN session s ON s.weekend_id = r.id\n                LEFT JOIN votes v ON v.session_id = s.id\n                WHERE r.year = $1\n                GROUP BY r.id, s.id\n                ORDER BY r.start_date ASC, r.id ASC, s.start_time ASC NULLS FIRST",
+  "query": "SELECT\n                    r.id AS weekend_id, r.year, r.location, r.circuit_full_name, r.grand_prix_id, r.country_key,\n                    r.start_date AS \"start_date: jiff_sqlx::Date\", r.round, r.official_name,\n                    s.id AS \"session_id?\",\n                    s.session_type AS \"session_type?: SessionType\",\n                    s.start_time AS \"start_time?: jiff_sqlx::Timestamp\",\n                    s.end_time AS \"end_time?: jiff_sqlx::Timestamp\",\n                    count(v.id) FILTER (WHERE v.vote_type = 'FullRace'::vote_type)   AS \"full_race!\",\n                    count(v.id) FILTER (WHERE v.vote_type = 'RaceIn30'::vote_type)   AS \"race_in_30!\",\n                    count(v.id) FILTER (WHERE v.vote_type = 'Highlights'::vote_type) AS \"highlights!\",\n                    max(v.vote_type) FILTER (WHERE v.user_identifier = $2) AS \"user_vote?: VoteType\"\n                FROM race_weekend r\n                LEFT JOIN session s ON s.weekend_id = r.id\n                LEFT JOIN votes v ON v.session_id = s.id\n                WHERE r.year = $1\n                GROUP BY r.id, s.id\n                ORDER BY r.start_date ASC, r.id ASC, s.start_time ASC NULLS FIRST",
   "describe": {
     "columns": [
       {
@@ -175,11 +175,29 @@
         "name": "highlights!",
         "type_info": "Int8",
         "origin": "Expression"
+      },
+      {
+        "ordinal": 16,
+        "name": "user_vote?: VoteType",
+        "type_info": {
+          "Custom": {
+            "name": "vote_type",
+            "kind": {
+              "Enum": [
+                "FullRace",
+                "RaceIn30",
+                "Highlights"
+              ]
+            }
+          }
+        },
+        "origin": "Expression"
       }
     ],
     "parameters": {
       "Left": [
-        "Int4"
+        "Int4",
+        "Text"
       ]
     },
     "nullable": [
@@ -198,8 +216,9 @@
       true,
       null,
       null,
+      null,
       null
     ]
   },
-  "hash": "9e796ff57ff24a2a6a1755457ab00f371c41e3296464741fb74e6fc9509abfa1"
+  "hash": "d7b80fa88ed4af87ee85187da1853a038fd44dfb23cd70d42916ea10336fbadf"
 }

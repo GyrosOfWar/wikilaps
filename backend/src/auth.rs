@@ -1,5 +1,5 @@
 use axum::{
-    extract::FromRequestParts,
+    extract::{FromRequestParts, OptionalFromRequestParts},
     http::{HeaderMap, request::Parts},
 };
 use axum_extra::extract::cookie::{Cookie, CookieJar, SameSite};
@@ -91,6 +91,25 @@ impl FromRequestParts<AppState> for UserId {
             .ok_or(AppError::Unauthorized("invalid identity cookie"))?;
 
         Ok(UserId(token))
+    }
+}
+
+/// Optional variant used by endpoints that work anonymously but personalize
+/// their response when a valid identity cookie is present. A missing or invalid
+/// cookie yields `None` rather than rejecting the request.
+impl OptionalFromRequestParts<AppState> for UserId {
+    type Rejection = AppError;
+
+    async fn from_request_parts(
+        parts: &mut Parts,
+        state: &AppState,
+    ) -> Result<Option<Self>, Self::Rejection> {
+        let jar = CookieJar::from_headers(&parts.headers);
+        let token = jar
+            .get(COOKIE_NAME)
+            .and_then(|cookie| verify_token(&state.cookie_secret, cookie.value()));
+
+        Ok(token.map(UserId))
     }
 }
 

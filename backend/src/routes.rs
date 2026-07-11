@@ -48,6 +48,7 @@ pub struct SessionResponse {
     pub start_time: Timestamp,
     pub end_time: Option<Timestamp>,
     pub votes: VoteCounts,
+    pub user_vote: Option<VoteType>,
 }
 
 #[derive(Debug, Serialize, ToSchema)]
@@ -86,6 +87,7 @@ impl From<SessionWithVotes> for SessionResponse {
             session_type: value.session_type,
             start_time: value.start_time.to_jiff(),
             end_time: value.end_time.map(|t| t.to_jiff()),
+            user_vote: value.user_vote,
             votes: match value.session_type {
                 SessionType::Race => VoteCounts {
                     full: value.votes.full_race,
@@ -112,10 +114,11 @@ impl From<SessionWithVotes> for SessionResponse {
 )]
 pub async fn get_latest_weekend(
     state: State<AppState>,
+    user: Option<UserId>,
 ) -> Result<Json<Option<RaceWeekendResponse>>> {
     let mut closest = state
         .db
-        .find_last_weekend()
+        .find_last_weekend(user.as_ref().map(|u| u.0.as_str()))
         .await?
         .map(RaceWeekendResponse::from);
     let now = Timestamp::now();
@@ -143,11 +146,12 @@ pub async fn get_latest_weekend(
 )]
 pub async fn list_weekends(
     state: State<AppState>,
+    user: Option<UserId>,
     Path(year): Path<i32>,
 ) -> Result<Json<Vec<RaceWeekendResponse>>> {
     let weekends: Vec<_> = state
         .db
-        .list_weekends(year)
+        .list_weekends(year, user.as_ref().map(|u| u.0.as_str()))
         .await?
         .into_iter()
         .map(From::from)
@@ -198,13 +202,6 @@ pub async fn init_session(
 pub struct VoteRequest {
     pub session_id: i64,
     pub vote: VoteType,
-}
-
-#[axum::debug_handler]
-#[utoipa::path(method(get), path = "/api/vote", responses((status = OK, body = Vec<i64>)))]
-pub async fn list_user_votes(state: State<AppState>, user: UserId) -> Result<Json<Vec<i64>>> {
-    let votes = state.db.list_voted_sessions_for_user(&user.0).await?;
-    Ok(Json(votes))
 }
 
 /// Cast a vote for a session on behalf of the browser identified by the signed
