@@ -88,7 +88,7 @@ impl From<SessionWithVotes> for SessionResponse {
         SessionResponse {
             id: value.id,
             session_type: value.session_type,
-            start_time: start_time,
+            start_time,
             end_time: value.end_time.map(|t| t.to_jiff()),
             user_vote: value.user_vote,
             voting_allowed: voting_allowed(start_time, value.session_type),
