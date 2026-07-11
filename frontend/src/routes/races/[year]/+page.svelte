@@ -11,7 +11,9 @@
     {m.weekend_page_heading({ year: data.year })}
   </h1>
 
-  <h3 class="text-xs font-bold tracking-wide uppercase opacity-70 mt-4 mb-1">Jump to</h3>
+  <h3 class="text-xs font-bold tracking-wide uppercase opacity-70 mt-4 mb-1">
+    {m.session_selector_label()}
+  </h3>
   <ul class="flex gap-2 w-full flex-wrap">
     {#each data.weekends as weekend (weekend.id)}
       <li>

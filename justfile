@@ -21,6 +21,10 @@ check:
     just backend check
     just frontend check
 
+test:
+    just backend test
+    just frontend test
+
 generate:
     just frontend generate
 

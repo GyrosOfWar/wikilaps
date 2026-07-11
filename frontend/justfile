@@ -8,3 +8,6 @@ check:
 generate:
     pnpm openapi:generate
     npx prettier --write src/lib/api.ts
+
+test:
+    pnpm test

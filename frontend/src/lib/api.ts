@@ -27,6 +27,7 @@ export type SessionResponse = {
   startTime: String;
   userVote?: null | VoteType;
   votes: VoteCounts;
+  votingAllowed: boolean;
 };
 export type RaceWeekendResponse = {
   circuitFullName: string;

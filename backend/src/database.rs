@@ -1,5 +1,7 @@
-use crate::error::Result;
-
+use crate::{
+    error::{AppError, Result},
+    util::voting_allowed,
+};
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use utoipa::ToSchema;
@@ -270,6 +272,20 @@ impl Database {
         session_id: i64,
         vote_type: VoteType,
     ) -> Result<()> {
+        let row = sqlx::query!(
+            r#"SELECT start_time AS "start_time: jiff_sqlx::Timestamp", session_type AS "session_type: SessionType"
+            FROM session WHERE id = $1"#,
+            session_id
+        )
+        .fetch_one(&self.db)
+        .await?;
+
+        if !voting_allowed(row.start_time.to_jiff(), row.session_type) {
+            return Err(AppError::Validation(
+                "Voting is not allowed yet for this session, try again later.",
+            ));
+        }
+
         sqlx::query!(
             "INSERT INTO votes (vote_type, user_identifier, session_id)
                 VALUES ($1, $2, $3)

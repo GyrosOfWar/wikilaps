@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { ClassValue } from "svelte/elements";
-  import type { SessionResponse, RaceWeekendResponse, VoteType } from "$lib/api";
+  import type { RaceWeekendResponse, VoteType } from "$lib/api";
   import { formatDate } from "$lib/date-time";
   import { Temporal } from "temporal-polyfill";
   import VoteResults from "./VoteResults.svelte";
@@ -18,13 +18,6 @@
   function isInFuture(date: string): boolean {
     const until = Temporal.PlainDate.from(date).until(Temporal.Now.plainDateISO());
     return until.total("second") < 0;
-  }
-
-  function canVote(session: SessionResponse) {
-    const start = Temporal.Instant.from(session.startTime);
-    const end = start.add("PT2H");
-
-    return Temporal.Now.instant().until(end).total("second") < 0;
   }
 
   // translate a GP based on its ID like `las-vegas` to a message key like `gp_las_vegas`
@@ -66,11 +59,13 @@
 
   <div class="p-4">
     {#if future}
-      <p class="text-sm opacity-60">Voting opens once the weekend gets underway.</p>
+      <p class="text-sm opacity-60">
+        {m.race_voting_not_yet()}
+      </p>
     {:else}
       <section class="space-y-4">
         {#each weekend.sessions as session, i (session.id)}
-          {@const interactive = canVote(session) && !session.userVote}
+          {@const interactive = session.votingAllowed && !session.userVote}
           {#if i !== 0}
             <hr class="hr" />
           {/if}

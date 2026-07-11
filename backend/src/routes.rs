@@ -2,6 +2,7 @@ use crate::{
     auth::{self, UserId},
     database::{Database, RaceWeekend, SessionType, SessionWithVotes, VoteType},
     error::Result,
+    util::voting_allowed,
 };
 use axum::{
     Json,
@@ -49,6 +50,7 @@ pub struct SessionResponse {
     pub end_time: Option<Timestamp>,
     pub votes: VoteCounts,
     pub user_vote: Option<VoteType>,
+    pub voting_allowed: bool,
 }
 
 #[derive(Debug, Serialize, ToSchema)]
@@ -82,12 +84,14 @@ impl From<RaceWeekend> for RaceWeekendResponse {
 
 impl From<SessionWithVotes> for SessionResponse {
     fn from(value: SessionWithVotes) -> Self {
+        let start_time = value.start_time.to_jiff();
         SessionResponse {
             id: value.id,
             session_type: value.session_type,
-            start_time: value.start_time.to_jiff(),
+            start_time: start_time,
             end_time: value.end_time.map(|t| t.to_jiff()),
             user_vote: value.user_vote,
+            voting_allowed: voting_allowed(start_time, value.session_type),
             votes: match value.session_type {
                 SessionType::Race => VoteCounts {
                     full: value.votes.full_race,

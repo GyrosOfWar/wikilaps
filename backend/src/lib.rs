@@ -17,6 +17,7 @@ pub mod docs;
 pub mod error;
 pub mod pagination;
 pub mod routes;
+pub mod util;
 
 pub async fn create_router() -> Result<(Router, AppConfig)> {
     let config = AppConfig::default();
