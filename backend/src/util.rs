@@ -20,3 +20,50 @@ pub fn voting_allowed(start_time: Timestamp, session_type: SessionType) -> bool 
     // negative distance means the date was in the past
     distance.is_negative()
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn voting_allowed_race() {
+        let start_time = Timestamp::now() + Span::new().minutes(80);
+        assert_eq!(false, voting_allowed(start_time, SessionType::Race));
+
+        let start_time = Timestamp::now() + Span::new().minutes(30);
+        assert_eq!(false, voting_allowed(start_time, SessionType::Race));
+
+        let start_time = Timestamp::now() + Span::new().minutes(-30);
+        assert_eq!(false, voting_allowed(start_time, SessionType::Race));
+
+        let start_time = Timestamp::now() + Span::new().minutes(-81);
+        assert_eq!(true, voting_allowed(start_time, SessionType::Race));
+    }
+
+    #[test]
+    fn voting_allowed_sprint_qual() {
+        let start_time = Timestamp::now() + Span::new().minutes(80);
+        assert_eq!(
+            false,
+            voting_allowed(start_time, SessionType::SprintQualifying)
+        );
+
+        let start_time = Timestamp::now() + Span::new().minutes(30);
+        assert_eq!(
+            false,
+            voting_allowed(start_time, SessionType::SprintQualifying)
+        );
+
+        let start_time = Timestamp::now() + Span::new().minutes(-20);
+        assert_eq!(
+            false,
+            voting_allowed(start_time, SessionType::SprintQualifying)
+        );
+
+        let start_time = Timestamp::now() + Span::new().minutes(-81);
+        assert_eq!(
+            true,
+            voting_allowed(start_time, SessionType::SprintQualifying)
+        );
+    }
+}
