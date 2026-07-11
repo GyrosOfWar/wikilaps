@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.5.0](https://github.com/GyrosOfWar/wikilaps/compare/v0.4.1...v0.5.0) (2026-07-11)
+
+
+### Features
+
+* idempotent vote import ([#6](https://github.com/GyrosOfWar/wikilaps/issues/6)) ([659d728](https://github.com/GyrosOfWar/wikilaps/commit/659d728b92f9cb68e10f0156e4c827e8a8bc2f31))
+* show year picker on season page ([659d728](https://github.com/GyrosOfWar/wikilaps/commit/659d728b92f9cb68e10f0156e4c827e8a8bc2f31))
+
 ## [0.4.1](https://github.com/GyrosOfWar/wikilaps/compare/v0.4.0...v0.4.1) (2026-07-11)
 
 
