@@ -31,7 +31,8 @@
     href={resolve("/races/2026")}
     class="btn preset-filled-primary-500 shadow-lg shadow-primary-500/25 mt-6 px-5 py-3"
   >
-    View 2026 Weekends <ArrowRight class="size-5" />
+    {m.hero_button()}
+    <ArrowRight class="size-5" />
   </a>
 </section>
 

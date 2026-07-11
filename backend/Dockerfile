@@ -11,12 +11,15 @@ COPY --from=planner /app/recipe.json recipe.json
 RUN cargo chef cook --release --recipe-path recipe.json
 # Build application
 COPY . .
-RUN cargo build --release --bin wikilaps
+RUN cargo build --release
+RUN cargo build --release --bin seed_db --features seed
 
 # We do not need the Rust toolchain to run the binary!
 FROM debian:trixie-slim AS runtime
 WORKDIR /app
+
 COPY --from=builder /app/target/release/wikilaps /usr/local/bin/wikilaps
+COPY --from=builder /app/target/release/seed_db /usr/local/bin/seed_db
 
 EXPOSE 13252
 

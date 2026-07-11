@@ -51,5 +51,6 @@
   "weekend_page_heading": "Season {year}",
   "nav_entry_races": "Races",
   "hero_heading": "Community ratings for Formula 1 sessions.",
-  "hero_sub_heading": "Inspired by the excellent {#link to=|https://wikihoops.com|}wikihoops{/link}."
+  "hero_sub_heading": "Inspired by the excellent {#link to=|https://wikihoops.com|}wikihoops{/link}. Data sourced from {#link to=|https://github.com/f1db/f1db|}f1db{/link}.",
+  "hero_button": "View current races"
 }
