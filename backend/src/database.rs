@@ -16,7 +16,7 @@ pub enum SessionType {
     Race,
 }
 
-#[derive(Debug, Clone, Copy, sqlx::Type, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Copy, sqlx::Type, Serialize, Deserialize, ToSchema, PartialEq, Eq, Hash)]
 #[sqlx(type_name = "vote_type", rename_all = "PascalCase")]
 pub enum VoteType {
     FullRace,
@@ -67,6 +67,10 @@ impl Database {
         sqlx::migrate!("./migrations").run(&db).await?;
 
         Ok(Self { db })
+    }
+
+    pub fn pool(&self) -> &PgPool {
+        &self.db
     }
 
     pub async fn find_last_weekend(&self, user_id: Option<&str>) -> Result<Option<RaceWeekend>> {

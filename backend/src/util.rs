@@ -23,6 +23,7 @@ pub fn voting_allowed(start_time: Timestamp, session_type: SessionType) -> bool 
 
 #[cfg(test)]
 mod test {
+    #![allow(clippy::bool_assert_comparison)]
     use super::*;
 
     #[test]

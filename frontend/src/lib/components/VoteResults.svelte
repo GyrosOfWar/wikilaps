@@ -82,10 +82,6 @@
         </div>
       </div>
     {/each}
-
-    <p class="pt-0.5 text-xs opacity-60">
-      {m.poll_total_votes({ count: total })}
-    </p>
   </div>
 {/snippet}
 
@@ -94,13 +90,13 @@
     {@render results()}
     <button
       type="button"
-      class="btn preset-outlined-surface-500 mt-3 w-full transition-colors hover:preset-tonal-surface"
+      class="btn preset-outlined-surface-500 mt-3 mb-0.5 w-full transition-colors hover:preset-tonal-surface"
       onclick={() => (showResults = false)}
     >
       {m.vote_back_to_vote()}
     </button>
   {:else}
-    <form class="space-y-3" onsubmit={handleSubmit}>
+    <form class="space-y-3 mb-0.5" onsubmit={handleSubmit}>
       <div class="space-y-2">
         {#each options as option (option.value)}
           <label
@@ -142,3 +138,7 @@
 {:else}
   {@render results()}
 {/if}
+
+<p class="text-xs opacity-60">
+  {m.poll_total_votes({ count: total })}
+</p>

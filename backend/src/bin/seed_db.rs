@@ -6,15 +6,23 @@
 //! Usage (from `backend/`): `cargo run --features seed --bin seed_db [year]`
 //! (defaults to the current year).
 
-use jiff::civil::{Date, Time};
+use clap::Parser;
+use jiff::{
+    Zoned,
+    civil::{Date, Time},
+};
 use jiff_sqlx::ToSqlx;
+use serde::Deserialize;
 use std::{
     collections::HashMap,
+    fs::File,
     io::{Cursor, Read},
+    path::PathBuf,
 };
+use tracing::info;
 use wikilaps::{
     config::AppConfig,
-    database::{Database, SessionType},
+    database::{Database, SessionType, VoteType},
 };
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
@@ -28,7 +36,7 @@ mod f1db {
     #[derive(Deserialize)]
     #[serde(rename_all = "camelCase")]
     pub struct Race {
-        pub year: i32,
+        pub year: i16,
         pub round: i32,
         pub date: String,
         pub time: Option<String>,
@@ -138,19 +146,20 @@ fn read_json<T: serde::de::DeserializeOwned>(
     Ok(serde_json::from_str(&contents)?)
 }
 
-#[tokio::main]
-async fn main() -> Result<()> {
-    let _ = dotenvy::dotenv();
-    tracing_subscriber::fmt().init();
+#[derive(Parser)]
+enum CliArgs {
+    /// Batch-import data for an entire season from f1db's latest data release on GitHub
+    F1Db { year: Option<i16> },
+    /// Import the Discord poll data from the supplied path to the YAML file
+    Poll { path: PathBuf },
+}
 
-    let config = AppConfig::default();
-    let db = Database::new(&config.database_url).await?;
+#[derive(Deserialize)]
+struct DiscordPollData {
+    polls: HashMap<String, HashMap<String, HashMap<VoteType, i32>>>,
+}
 
-    let year: i32 = match std::env::args().nth(1) {
-        Some(arg) => arg.parse()?,
-        None => jiff::Zoned::now().date().year().into(),
-    };
-
+async fn import_f1db(db: &Database, year: i16) -> Result<()> {
     tracing::info!("Seeding season {year} from f1db");
 
     let zip_bytes = download_f1db_snapshot().await?;
@@ -200,7 +209,7 @@ async fn main() -> Result<()> {
 
         let weekend_id = db
             .upsert_race_weekend(
-                race.year,
+                race.year.into(),
                 race.round,
                 &circuit.place_name,
                 &circuit.id,
@@ -225,6 +234,67 @@ async fn main() -> Result<()> {
     }
 
     tracing::info!("Seeded {seeded_weekends} weekend(s), {seeded_sessions} session(s) for {year}");
+
+    Ok(())
+}
+
+async fn import_poll_results(db: &Database, path: &PathBuf) -> Result<()> {
+    let data: DiscordPollData = serde_norway::from_reader(File::open(path)?)?;
+
+    let mut tx = db.pool().begin().await?;
+
+    for (year, results) in data.polls {
+        let year: i32 = year.parse().unwrap();
+        info!("Inserting poll results for {year}");
+        for (grand_prix_id, poll_result) in results {
+            for (vote_type, count) in poll_result {
+                info!(
+                    "Inserting {count} votes for the race at {grand_prix_id} with type {vote_type:?}"
+                );
+                sqlx::query!(
+                    "WITH session_info AS (
+                        SELECT s.id AS session_id 
+                        FROM session s
+                        JOIN race_weekend rw
+                        ON s.weekend_id = rw.id AND rw.grand_prix_id = $1 AND rw.year = $2
+                        WHERE s.session_type = 'race'
+                    )
+                    INSERT INTO votes (user_identifier, vote_type, session_id)
+                    SELECT gen_random_uuid()::varchar, $3, s.session_id
+                    FROM session_info s
+                    CROSS JOIN LATERAL generate_series(1, $4)",
+                    grand_prix_id,
+                    year,
+                    vote_type as _,
+                    count,
+                )
+                .execute(&mut *tx)
+                .await?;
+            }
+        }
+    }
+
+    tx.commit().await?;
+
+    Ok(())
+}
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    let _ = dotenvy::dotenv();
+    tracing_subscriber::fmt().init();
+
+    let args = CliArgs::parse();
+
+    let config = AppConfig::default();
+    let db = Database::new(&config.database_url).await?;
+
+    match args {
+        CliArgs::F1Db { year } => {
+            import_f1db(&db, year.unwrap_or_else(|| Zoned::now().year())).await?
+        }
+        CliArgs::Poll { path } => import_poll_results(&db, &path).await?,
+    }
 
     Ok(())
 }
