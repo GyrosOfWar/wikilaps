@@ -36,3 +36,147 @@ polls:
       FullRace: 56
       RaceIn30: 5
       Highlights: 0
+
+  "2025":
+    abu-dhabi:
+      FullRace: 59
+      RaceIn30: 0
+      Highlights: 0
+    qatar:
+      FullRace: 14
+      RaceIn30: 23
+      Highlights: 16
+    las-vegas:
+      FullRace: 2
+      RaceIn30: 5
+      Highlights: 35
+    sao-paolo:
+      FullRace: 37
+      RaceIn30: 10
+      Highlights: 0
+    mexico:
+      FullRace: 55
+      RaceIn30: 10
+      Highlights: 0
+    united-states:
+      FullRace: 1
+      RaceIn30: 15
+      Highlights: 40
+    singapore:
+      FullRace: 1
+      RaceIn30: 8
+      Highlights: 36
+    azerbaijan:
+      FullRace: 3
+      RaceIn30: 19
+      Highlights: 11
+    italy:
+      FullRace: 4
+      RaceIn30: 13
+      Highlights: 41
+    netherlands:
+      FullRace: 37
+      RaceIn30: 11
+      Highlights: 4
+    hungary:
+      FullRace: 20
+      RaceIn30: 19
+      Highlights: 6
+    belgium:
+      FullRace: 2
+      RaceIn30: 22
+      Highlights: 21
+    great-britain:
+      FullRace: 53
+      RaceIn30: 4
+      Highlights: 0
+    austria:
+      FullRace: 17
+      RaceIn30: 23
+      Highlights: 7
+    canada:
+      FullRace: 7
+      RaceIn30: 30
+      Highlights: 19
+    spain:
+      FullRace: 20
+      RaceIn30: 35
+      Highlights: 7
+    monaco:
+      FullRace: 2
+      RaceIn30: 16
+      Highlights: 36
+    emilia-romagna:
+      FullRace: 26
+      RaceIn30: 16
+      Highlights: 5
+    miami:
+      FullRace: 19
+      RaceIn30: 43
+      Highlights: 7
+    saudi-arabia:
+      FullRace: 2
+      RaceIn30: 14
+      Highlights: 30
+    bahrain:
+      FullRace: 41
+      RaceIn30: 2
+      Highlights: 0
+    japan:
+      FullRace: 1
+      RaceIn30: 2
+      Highlights: 50
+    china:
+      FullRace: 2
+      RaceIn30: 19
+      Highlights: 8
+    australia:
+      FullRace: 37
+      RaceIn30: 0
+      Highlights: 0
+
+  "2024":
+    qatar:
+      FullRace: 5
+      RaceIn30: 6
+      Highlights: 15
+    sao-paolo:
+      FullRace: 19
+      RaceIn30: 2
+      Highlights: 0
+    mexico:
+      FullRace: 27
+      RaceIn30: 5
+      Highlights: 1
+    united-states:
+      FullRace: 10
+      RaceIn30: 0
+      Highlights: 23
+    singapore:
+      FullRace: 1
+      RaceIn30: 4
+      Highlights: 26
+    azerbaijan:
+      FullRace: 24
+      RaceIn30: 3
+      Highlights: 0
+    italy:
+      FullRace: 37
+      RaceIn30: 0
+      Highlights: 5
+    netherlands:
+      FullRace: 2
+      RaceIn30: 0
+      Highlights: 29
+    belgium:
+      FullRace: 41
+      RaceIn30: 0
+      Highlights: 8
+    hungary:
+      FullRace: 38
+      RaceIn30: 0
+      Highlights: 7
+    great-britain:
+      FullRace: 27
+      RaceIn30: 0
+      Highlights: 0
