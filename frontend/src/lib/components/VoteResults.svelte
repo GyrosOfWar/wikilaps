@@ -42,6 +42,7 @@
   const maxCount = $derived(Math.max(...options.map((o) => o.count)));
 
   let selected = $state<VoteType | null>(null);
+  let showResults = $state(false);
 
   function handleSubmit(event: SubmitEvent) {
     event.preventDefault();
@@ -89,31 +90,55 @@
 {/snippet}
 
 {#if interactive}
-  <form class="space-y-3" onsubmit={handleSubmit}>
-    <div class="space-y-2">
-      {#each options as option (option.value)}
-        <label
-          class="flex cursor-pointer items-center gap-2 rounded border px-3 py-2 text-sm font-medium transition-colors {selected ===
-          option.value
-            ? 'border-primary-500 preset-tonal-primary'
-            : 'border-surface-200-800 hover:preset-tonal-surface'}"
-        >
-          <input
-            type="radio"
-            class="radio"
-            name="vote"
-            value={option.value}
-            bind:group={selected}
-          />
-          {option.label}
-        </label>
-      {/each}
-    </div>
-
-    <button type="submit" class="btn preset-filled-primary-500 w-full" disabled={!selected}>
-      {m.vote_submit()}
+  {#if showResults}
+    {@render results()}
+    <button
+      type="button"
+      class="btn preset-outlined-surface-500 mt-3 w-full transition-colors hover:preset-tonal-surface"
+      onclick={() => (showResults = false)}
+    >
+      {m.vote_back_to_vote()}
     </button>
-  </form>
+  {:else}
+    <form class="space-y-3" onsubmit={handleSubmit}>
+      <div class="space-y-2">
+        {#each options as option (option.value)}
+          <label
+            class="flex cursor-pointer items-center gap-2 rounded border px-3 py-2 text-sm font-medium transition-colors {selected ===
+            option.value
+              ? 'border-primary-500 preset-tonal-primary'
+              : 'border-surface-200-800 hover:preset-tonal-surface'}"
+          >
+            <input
+              type="radio"
+              class="radio"
+              name="vote"
+              value={option.value}
+              bind:group={selected}
+            />
+            {option.label}
+          </label>
+        {/each}
+      </div>
+
+      <div class="flex gap-2">
+        <button
+          type="submit"
+          class="btn preset-filled-primary-500 flex-1 transition-colors hover:preset-filled-primary-600-400 disabled:pointer-events-none disabled:opacity-50"
+          disabled={!selected}
+        >
+          {m.vote_submit()}
+        </button>
+        <button
+          type="button"
+          class="btn preset-outlined-surface-500 transition-colors hover:preset-tonal-surface"
+          onclick={() => (showResults = true)}
+        >
+          {m.vote_show_results()}
+        </button>
+      </div>
+    </form>
+  {/if}
 {:else}
   {@render results()}
 {/if}
