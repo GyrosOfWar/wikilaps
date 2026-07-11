@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/GyrosOfWar/wikilaps/compare/v0.4.0...v0.4.1) (2026-07-11)
+
+
+### Bug Fixes
+
+* missing sqlx query data ([67d4c2a](https://github.com/GyrosOfWar/wikilaps/commit/67d4c2ab2d8404c59e8ac0b46614684cdc84f8cc))
+
 ## [0.4.0](https://github.com/GyrosOfWar/wikilaps/compare/v0.3.1...v0.4.0) (2026-07-11)
 
 
