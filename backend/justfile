@@ -3,8 +3,11 @@ format:
 
 check:
     cargo fmt --check
-    cargo check
-    cargo sqlx prepare --check -- --all-targets
+    cargo check --all-targets --bins --all-features
+    cargo sqlx prepare --check -- --all-targets --all-features
     
 test:
     cargo test
+
+prepare:
+    cargo sqlx prepare -- --all-targets --all-features

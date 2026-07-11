@@ -39,7 +39,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: backend
-      - run: cargo check --all-targets
+      - run: cargo check --all-targets --bins --all-features
 
   test:
     name: Test

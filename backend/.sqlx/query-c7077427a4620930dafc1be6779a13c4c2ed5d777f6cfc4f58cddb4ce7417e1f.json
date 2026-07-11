@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "WITH session_info AS (\n                        SELECT s.id AS session_id \n                        FROM session s\n                        JOIN race_weekend rw\n                        ON s.weekend_id = rw.id AND rw.grand_prix_id = $1 AND rw.year = $2\n                        WHERE s.session_type = 'race'\n                    )\n                    INSERT INTO votes (user_identifier, vote_type, session_id)\n                    SELECT gen_random_uuid()::varchar, $3, s.session_id\n                    FROM session_info s\n                    CROSS JOIN LATERAL generate_series(1, $4)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Int4",
+        {
+          "Custom": {
+            "name": "vote_type",
+            "kind": {
+              "Enum": [
+                "FullRace",
+                "RaceIn30",
+                "Highlights"
+              ]
+            }
+          }
+        },
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "c7077427a4620930dafc1be6779a13c4c2ed5d777f6cfc4f58cddb4ce7417e1f"
+}
