@@ -1,0 +1,52 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT start_time AS \"start_time: jiff_sqlx::Timestamp\", session_type AS \"session_type: SessionType\"\n            FROM session WHERE id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "start_time: jiff_sqlx::Timestamp",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "session",
+            "name": "start_time"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "session_type: SessionType",
+        "type_info": {
+          "Custom": {
+            "name": "session_type",
+            "kind": {
+              "Enum": [
+                "sprint_qualifying",
+                "sprint_race",
+                "qualifying",
+                "race"
+              ]
+            }
+          }
+        },
+        "origin": {
+          "Table": {
+            "table": "session",
+            "name": "session_type"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "9200c39943bfdd85a095f6d3e39bc8eaa7a1ec9be845d5d6716ff50e12e27407"
+}
