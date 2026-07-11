@@ -1,0 +1,26 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT DISTINCT year FROM race_weekend ORDER BY year ASC",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "year",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "race_weekend",
+            "name": "year"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "44b882273965474bf89618ec1972f931b460c3782d69d6181ca4676f26911874"
+}

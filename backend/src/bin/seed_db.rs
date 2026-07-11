@@ -251,22 +251,47 @@ async fn import_poll_results(db: &Database, path: &PathBuf) -> Result<()> {
                 info!(
                     "Inserting {count} votes for the race at {grand_prix_id} with type {vote_type:?}"
                 );
+
+                // create a deterministic user ID for each vote, a running counter is appended at the end
+                // when inserting
+                let identifier_prefix = format!("seed-poll:{grand_prix_id}:{year}:{vote_type:?}:");
+
+                // clear out the already-created votes first
+                sqlx::query!(
+                    "DELETE FROM votes v
+                    USING session s
+                    JOIN race_weekend rw ON s.weekend_id = rw.id
+                    WHERE v.session_id = s.id
+                        AND rw.grand_prix_id = $1
+                        AND rw.year = $2
+                        AND s.session_type = 'race'
+                        AND v.vote_type = $3
+                        AND v.user_identifier LIKE $4 || '%'",
+                    grand_prix_id,
+                    year,
+                    vote_type as _,
+                    identifier_prefix,
+                )
+                .execute(&mut *tx)
+                .await?;
+
                 sqlx::query!(
                     "WITH session_info AS (
-                        SELECT s.id AS session_id 
+                        SELECT s.id AS session_id
                         FROM session s
                         JOIN race_weekend rw
                         ON s.weekend_id = rw.id AND rw.grand_prix_id = $1 AND rw.year = $2
                         WHERE s.session_type = 'race'
                     )
                     INSERT INTO votes (user_identifier, vote_type, session_id)
-                    SELECT gen_random_uuid()::varchar, $3, s.session_id
+                    SELECT $5 || gs::text, $3, s.session_id
                     FROM session_info s
-                    CROSS JOIN LATERAL generate_series(1, $4)",
+                    CROSS JOIN LATERAL generate_series(1, $4) AS gs",
                     grand_prix_id,
                     year,
                     vote_type as _,
                     count,
+                    identifier_prefix,
                 )
                 .execute(&mut *tx)
                 .await?;

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { resolve } from "$app/paths";
   import { submitVote } from "$lib/client.js";
   import RaceWeekendCard from "$lib/components/RaceWeekendCard.svelte";
   import * as m from "$lib/paraglide/messages";
@@ -10,6 +11,25 @@
   <h1 class="h2 font-bold tracking-tight">
     {m.weekend_page_heading({ year: data.year })}
   </h1>
+
+  <ul class="flex gap-2 w-full flex-wrap">
+    {#each data.allYears as year (year)}
+      {@const isCurrentYear = year === data.year}
+      <li
+        class={[
+          "badge font-bold preset-filled-primary-500",
+          isCurrentYear && "opacity-70 cursor-not-allowed",
+        ]}
+      >
+        <a
+          aria-disabled={isCurrentYear}
+          href={isCurrentYear ? undefined : resolve(`/races/${year}`)}
+        >
+          {year}
+        </a>
+      </li>
+    {/each}
+  </ul>
 
   <h3 class="text-xs font-bold tracking-wide uppercase opacity-70 mt-4 mb-1">
     {m.session_selector_label()}

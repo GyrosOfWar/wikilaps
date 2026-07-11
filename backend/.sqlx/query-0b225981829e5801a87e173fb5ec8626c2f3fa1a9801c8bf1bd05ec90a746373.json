@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM votes v\n                    USING session s\n                    JOIN race_weekend rw ON s.weekend_id = rw.id\n                    WHERE v.session_id = s.id\n                        AND rw.grand_prix_id = $1\n                        AND rw.year = $2\n                        AND s.session_type = 'race'\n                        AND v.vote_type = $3\n                        AND v.user_identifier LIKE $4 || '%'",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Int4",
+        {
+          "Custom": {
+            "name": "vote_type",
+            "kind": {
+              "Enum": [
+                "FullRace",
+                "RaceIn30",
+                "Highlights"
+              ]
+            }
+          }
+        },
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "0b225981829e5801a87e173fb5ec8626c2f3fa1a9801c8bf1bd05ec90a746373"
+}

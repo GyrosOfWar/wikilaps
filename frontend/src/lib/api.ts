@@ -86,3 +86,11 @@ export function createVote(voteRequest: VoteRequest, opts?: Oazapfts.RequestOpts
     }),
   );
 }
+export function getYearsOfData(opts?: Oazapfts.RequestOpts) {
+  return oazapfts.fetchJson<{
+    status: 200;
+    data: number[];
+  }>("/api/years", {
+    ...opts,
+  });
+}
