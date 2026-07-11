@@ -111,6 +111,19 @@ impl From<SessionWithVotes> for SessionResponse {
 #[axum::debug_handler]
 #[utoipa::path(
     method(get),
+    path = "/api/years",
+    responses(
+        (status = OK, description = "Success", body = Vec<i32>)
+    )
+)]
+pub async fn get_years_of_data(state: State<AppState>) -> Result<Json<Vec<i32>>> {
+    let years = state.db.find_years_of_data().await?;
+    Ok(Json(years))
+}
+
+#[axum::debug_handler]
+#[utoipa::path(
+    method(get),
     path = "/api/race-weekends/latest",
     responses(
         (status = OK, description = "Success", body = Option<RaceWeekendResponse>)

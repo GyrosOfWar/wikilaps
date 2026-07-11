@@ -302,6 +302,13 @@ impl Database {
         .await?;
         Ok(())
     }
+
+    pub async fn find_years_of_data(&self) -> Result<Vec<i32>> {
+        sqlx::query_scalar!("SELECT DISTINCT year FROM race_weekend ORDER BY year ASC")
+            .fetch_all(&self.db)
+            .await
+            .map_err(From::from)
+    }
 }
 
 #[cfg(test)]

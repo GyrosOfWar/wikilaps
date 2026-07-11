@@ -28,6 +28,7 @@ pub async fn create_router() -> Result<(Router, AppConfig)> {
         .routes(routes!(routes::list_weekends))
         .routes(routes!(routes::init_session))
         .routes(routes!(routes::create_vote))
+        .routes(routes!(routes::get_years_of_data))
         .with_state(AppState {
             db: database,
             cookie_secret: config.cookie_secret.clone().into(),
