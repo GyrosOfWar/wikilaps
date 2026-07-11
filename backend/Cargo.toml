@@ -5,7 +5,13 @@ edition = "2024"
 default-run = "wikilaps"
 
 [features]
-seed = ["dep:reqwest", "dep:zip", "dep:serde_json"]
+seed = [
+    "dep:reqwest",
+    "dep:zip",
+    "dep:serde_json",
+    "dep:clap",
+    "dep:serde_norway",
+]
 
 [dependencies]
 axum = { version = "0.8.6", features = ["macros"] }
@@ -40,6 +46,8 @@ serde_json = { version = "1", optional = true }
 utoipa = { version = "5.5.0", features = ["jiff_0_2"] }
 utoipa-axum = "0.2.0"
 utoipa-swagger-ui = { version = "9.0.2", features = ["axum"] }
+clap = { version = "4.6.1", features = ["derive"], optional = true }
+serde_norway = { version = "0.9.42", optional = true }
 
 [[bin]]
 name = "seed_db"
