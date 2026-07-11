@@ -23,6 +23,8 @@
     }
   ],
   "vote_submit": "Vote",
+  "vote_show_results": "Show results",
+  "vote_back_to_vote": "Back to vote",
   "gp_abu_dhabi": "Abu Dhabi Grand Prix",
   "gp_australia": "Australian Grand Prix",
   "gp_austria": "Austrian Grand Prix",

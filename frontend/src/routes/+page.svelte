@@ -42,7 +42,7 @@
     <RaceWeekendCard
       weekend={data.weekend}
       onSubmitVote={submitVote}
-      class="preset-filled-surface-50-950 border border-surface-200-800 shadow-xl"
+      class="border border-surface-200-800 shadow-xl bg-tertiary-50-950"
     />
   </section>
 {/if}
