@@ -1,0 +1,30 @@
+polls:
+  "2026":
+    great-britain:
+      full_race: 27
+      race_in_30: 21
+      highlights: 3
+    austria:
+      full_race: 4
+      race_in_30: 31
+      highlights: 14
+    catalunya:
+      full_race: 33
+      race_in_30: 23
+      highlights: 2
+    monaco:
+      full_race: 44
+      race_in_30: 10
+      highlights: 6
+    miami:
+      full_race: 32
+      race_in_30: 18
+      highlights: 0
+    japan:
+      full_race: 9
+      race_in_30: 17
+      highlights: 1
+    australia:
+      full_race: 38
+      race_in_30: 10
+      highlights: 1
