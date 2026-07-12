@@ -1,12 +1,13 @@
 use crate::{
     auth::{self, UserId},
-    database::{Database, RaceWeekend, SessionType, SessionWithVotes, VoteType},
+    database::{self, Database, RaceWeekend, SessionType, SessionWithVotes, VoteType},
     error::Result,
+    pagination::{Page, PageParameters},
     util::voting_allowed,
 };
 use axum::{
     Json,
-    extract::{Path, State},
+    extract::{Path, Query, State},
     http::{HeaderMap, StatusCode},
 };
 use axum_extra::extract::cookie::CookieJar;
@@ -111,7 +112,7 @@ impl From<SessionWithVotes> for SessionResponse {
 #[axum::debug_handler]
 #[utoipa::path(
     method(get),
-    path = "/api/years",
+    path = "/api/race/years",
     responses(
         (status = OK, description = "Success", body = Vec<i32>)
     )
@@ -124,7 +125,7 @@ pub async fn get_years_of_data(state: State<AppState>) -> Result<Json<Vec<i32>>>
 #[axum::debug_handler]
 #[utoipa::path(
     method(get),
-    path = "/api/race-weekends/latest",
+    path = "/api/race/weekends/latest",
     responses(
         (status = OK, description = "Success", body = Option<RaceWeekendResponse>)
     )
@@ -153,7 +154,7 @@ pub async fn get_latest_weekend(
 #[axum::debug_handler]
 #[utoipa::path(
     method(get),
-    path = "/api/race-weekends/{year}",
+    path = "/api/race/weekends/{year}",
     params(
         ("year" = i32, Path),
     ),
@@ -246,4 +247,62 @@ pub async fn create_vote(
         .await?;
 
     Ok(StatusCode::CREATED)
+}
+
+#[derive(Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct SessionListResponse {
+    pub id: i64,
+    pub grand_prix_id: String,
+    pub country_key: String,
+    pub race_weekend_start_date: Date,
+    pub session_start_time: Timestamp,
+    pub round: i32,
+    pub session_type: SessionType,
+    pub votes: VoteCounts,
+}
+
+impl From<database::Session> for SessionListResponse {
+    fn from(s: database::Session) -> Self {
+        SessionListResponse {
+            id: s.id,
+            grand_prix_id: s.grand_prix_id,
+            country_key: s.country_key,
+            race_weekend_start_date: s.race_weekend_start_date.to_jiff(),
+            session_start_time: s.session_start_time.to_jiff(),
+            round: s.round,
+            session_type: s.session_type,
+            votes: match s.session_type {
+                SessionType::Race => VoteCounts {
+                    full: s.votes.full_race,
+                    race_in_30: Some(s.votes.race_in_30),
+                    highlights: s.votes.highlights,
+                },
+                _ => VoteCounts {
+                    full: s.votes.full_race,
+                    race_in_30: None,
+                    highlights: s.votes.highlights,
+                },
+            },
+        }
+    }
+}
+
+#[axum::debug_handler]
+#[utoipa::path(
+    path = "/api/race/sessions", 
+    method(get), responses(
+        (status = OK, description = "Success", body = Page<RaceWeekendResponse>)
+    )
+)]
+pub async fn get_race_sessions(
+    State(state): State<AppState>,
+    Query(page): Query<PageParameters>,
+) -> Result<Json<Page<SessionListResponse>>> {
+    let page = state
+        .db
+        .list_sessions(page)
+        .await?
+        .map(SessionListResponse::from);
+    Ok(Json(page))
 }

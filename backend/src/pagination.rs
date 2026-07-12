@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 
 #[derive(Deserialize, Debug, Clone, Copy)]
 #[serde(rename_all = "camelCase")]
@@ -48,7 +49,7 @@ impl PageParameters {
     }
 }
 
-#[derive(Serialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Page<T> {
     pub content: Vec<T>,
@@ -70,18 +71,31 @@ impl<T> Page<T> {
     }
 }
 
-impl<T: Serialize> Page<T> {
-    pub fn new(content: Vec<T>, size: u32, page: PageParameters) -> Self {
+impl<T> Page<T> {
+    pub fn new(content: Vec<T>, total_size: u32, page: PageParameters) -> Self {
         let page_number = page.page.unwrap_or(PageParameters::DEFAULT_PAGE as u32);
         let page_size = page.size.unwrap_or(PageParameters::DEFAULT_SIZE as u32);
-        let total_pages = (size as f64 / page_size as f64).ceil() as u32;
+        let total_pages = (total_size as f64 / page_size as f64).ceil() as u32;
 
         Page {
             content,
-            total_items: size,
+            total_items: total_size,
             page_number,
             page_size,
             total_pages,
+        }
+    }
+
+    pub fn map<F, U>(self, fun: F) -> Page<U>
+    where
+        F: FnMut(T) -> U,
+    {
+        Page {
+            content: self.content.into_iter().map(fun).collect(),
+            total_items: self.total_items,
+            page_number: self.page_number,
+            page_size: self.page_size,
+            total_pages: self.total_pages,
         }
     }
 }

@@ -29,6 +29,24 @@ export type SessionResponse = {
   votes: VoteCounts;
   votingAllowed: boolean;
 };
+export type PageRaceWeekendResponse = {
+  content: {
+    circuitFullName: string;
+    countryKey: string;
+    grandPrixId: string;
+    id: number;
+    location: string;
+    officialName: string;
+    round: number;
+    sessions: SessionResponse[];
+    startDate: String;
+    year: number;
+  }[];
+  pageNumber: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+};
 export type RaceWeekendResponse = {
   circuitFullName: string;
   countryKey: string;
@@ -45,11 +63,19 @@ export type VoteRequest = {
   sessionId: number;
   vote: VoteType;
 };
+export function getRaceSessions(opts?: Oazapfts.RequestOpts) {
+  return oazapfts.fetchJson<{
+    status: 200;
+    data: PageRaceWeekendResponse;
+  }>("/api/race/sessions", {
+    ...opts,
+  });
+}
 export function getLatestWeekend(opts?: Oazapfts.RequestOpts) {
   return oazapfts.fetchJson<{
     status: 200;
     data: null | RaceWeekendResponse;
-  }>("/api/race-weekends/latest", {
+  }>("/api/race/weekends/latest", {
     ...opts,
   });
 }
@@ -57,7 +83,15 @@ export function listWeekends(year: number, opts?: Oazapfts.RequestOpts) {
   return oazapfts.fetchJson<{
     status: 200;
     data: RaceWeekendResponse[];
-  }>(`/api/race-weekends/${encodeURIComponent(year)}`, {
+  }>(`/api/race/weekends/${encodeURIComponent(year)}`, {
+    ...opts,
+  });
+}
+export function getYearsOfData(opts?: Oazapfts.RequestOpts) {
+  return oazapfts.fetchJson<{
+    status: 200;
+    data: number[];
+  }>("/api/race/years", {
     ...opts,
   });
 }
@@ -85,12 +119,4 @@ export function createVote(voteRequest: VoteRequest, opts?: Oazapfts.RequestOpts
       body: voteRequest,
     }),
   );
-}
-export function getYearsOfData(opts?: Oazapfts.RequestOpts) {
-  return oazapfts.fetchJson<{
-    status: 200;
-    data: number[];
-  }>("/api/years", {
-    ...opts,
-  });
 }

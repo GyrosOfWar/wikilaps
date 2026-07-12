@@ -1,5 +1,6 @@
 use crate::{
     error::{AppError, Result},
+    pagination::{Page, PageParameters},
     util::voting_allowed,
 };
 use serde::{Deserialize, Serialize};
@@ -22,6 +23,18 @@ pub enum VoteType {
     FullRace,
     RaceIn30,
     Highlights,
+}
+
+#[derive(Debug)]
+pub struct Session {
+    pub id: i64,
+    pub grand_prix_id: String,
+    pub country_key: String,
+    pub race_weekend_start_date: jiff_sqlx::Date,
+    pub session_start_time: jiff_sqlx::Timestamp,
+    pub round: i32,
+    pub votes: VoteCounts,
+    pub session_type: SessionType,
 }
 
 #[derive(Debug)]
@@ -268,6 +281,57 @@ impl Database {
         .await?;
 
         Ok(())
+    }
+
+    pub async fn list_sessions(&self, page: PageParameters) -> Result<Page<Session>> {
+        let rows = sqlx::query!(
+            r#"SELECT 
+                s.id, rw.grand_prix_id, rw.country_key,
+                rw.start_date AS "race_weekend_start_time: jiff_sqlx::Date",
+                s.start_time AS "session_start_time: jiff_sqlx::Timestamp",
+                rw.round, s.session_type AS "session_type: SessionType",
+                count(v.id) FILTER (WHERE v.vote_type = 'FullRace'::vote_type)   AS "full_race!",
+                count(v.id) FILTER (WHERE v.vote_type = 'RaceIn30'::vote_type)   AS "race_in_30!",
+                count(v.id) FILTER (WHERE v.vote_type = 'Highlights'::vote_type) AS "highlights!"
+            FROM session s
+            JOIN race_weekend rw ON s.weekend_id = rw.id
+            LEFT JOIN votes v on v.session_id = s.id
+            GROUP BY rw.id, s.id
+            ORDER BY $3 DESC
+            LIMIT $1
+            OFFSET $2
+            "#,
+            page.limit(),
+            page.offset(),
+            "start_date",
+        )
+        .fetch_all(&self.db)
+        .await?;
+
+        let count = sqlx::query_scalar!("SELECT count(*) FROM session")
+            .fetch_one(&self.db)
+            .await?
+            .unwrap_or_default();
+
+        let sessions: Vec<_> = rows
+            .into_iter()
+            .map(|r| Session {
+                id: r.id,
+                grand_prix_id: r.grand_prix_id,
+                country_key: r.country_key,
+                race_weekend_start_date: r.race_weekend_start_time,
+                session_start_time: r.session_start_time,
+                session_type: r.session_type,
+                round: r.round,
+                votes: VoteCounts {
+                    full_race: r.full_race,
+                    race_in_30: r.race_in_30,
+                    highlights: r.highlights,
+                },
+            })
+            .collect();
+
+        Ok(Page::new(sessions, count as u32, page))
     }
 
     pub async fn insert_vote(
