@@ -288,7 +288,7 @@ impl From<database::Session> for SessionListResponse {
     }
 }
 
-#[derive(Deserialize, IntoParams)]
+#[derive(Deserialize, IntoParams, Debug)]
 pub struct SessionListFilter {
     pub year: Option<i32>,
 
@@ -309,7 +309,7 @@ pub async fn list_sessions(
     Query(page): Query<PageParameters>,
     Query(filter): Query<SessionListFilter>,
 ) -> Result<Json<Page<SessionListResponse>>> {
-    // TODO validate that the sort column is valid
+    info!(page = ?page, filter = ?filter, "list_sessions");
 
     let page = state
         .db

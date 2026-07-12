@@ -1,5 +1,8 @@
 use crate::{
-    error::{AppError, Result},
+    error::{
+        AppError::{self, Validation},
+        Result,
+    },
     pagination::{Page, PageParameters},
     routes::SessionListFilter,
     util::voting_allowed,
@@ -289,6 +292,18 @@ impl Database {
         page: PageParameters,
         filter: SessionListFilter,
     ) -> Result<Page<Session>> {
+        const VALID_SORT: [&str; 2] = ["score", "start_date"];
+
+        let sort_valid = page
+            .sort
+            .as_deref()
+            .map(|s| VALID_SORT.contains(&s))
+            .unwrap_or(true);
+
+        if !sort_valid {
+            return Err(Validation("Invalid sort parameter"));
+        }
+
         let rows = sqlx::query!(
             r#"SELECT 
                 s.id, rw.grand_prix_id, rw.country_key,
@@ -305,7 +320,15 @@ impl Database {
                 AND ($2::session_type IS NULL OR s.session_type = $2)
                 AND s.start_time < NOW()
             GROUP BY rw.id, s.id
-            ORDER BY rw.start_date DESC
+            ORDER BY
+                CASE
+                    WHEN $5 = 'start_date' THEN rw.start_date
+                END DESC,
+                CASE
+                    WHEN $5 = 'score' THEN
+                        count(v.id) FILTER (WHERE v.vote_type = 'FullRace'::vote_type)::float8
+                        / NULLIF(count(v.id), 0)
+                END DESC NULLS LAST
             LIMIT $3
             OFFSET $4
             "#,
@@ -313,6 +336,7 @@ impl Database {
             filter.session_type as _,
             page.limit(),
             page.offset(),
+            page.sort.as_deref().unwrap_or("start_date"),
         )
         .fetch_all(&self.db)
         .await?;
