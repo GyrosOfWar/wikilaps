@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.2](https://github.com/GyrosOfWar/wikilaps/compare/v0.5.1...v0.5.2) (2026-07-12)
+
+
+### Bug Fixes
+
+* include application version in UI ([6c16377](https://github.com/GyrosOfWar/wikilaps/commit/6c16377e7867bd32646754c468888ff430da679c))
+
 ## [0.5.1](https://github.com/GyrosOfWar/wikilaps/compare/v0.5.0...v0.5.1) (2026-07-12)
 
 
