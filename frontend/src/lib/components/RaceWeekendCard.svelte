@@ -4,7 +4,7 @@
   import { formatDate } from "$lib/date-time";
   import { Temporal } from "temporal-polyfill";
   import VoteResults from "./VoteResults.svelte";
-  import { sessionTypeLabel } from "$lib/i18n";
+  import { grandPrixName, sessionTypeLabel } from "$lib/i18n";
   import * as m from "$lib/paraglide/messages";
 
   interface Props {
@@ -18,19 +18,6 @@
   function isInFuture(date: string): boolean {
     const until = Temporal.PlainDate.from(date).until(Temporal.Now.plainDateISO());
     return until.total("second") < 0;
-  }
-
-  // translate a GP based on its ID like `las-vegas` to a message key like `gp_las_vegas`
-  function grandPrixName(grandPrixId: string) {
-    const id = `gp_${grandPrixId.replace("-", "_")}`;
-    // @ts-expect-error dynamic key but it's generally fine
-    const fn = m[id];
-    if (fn) {
-      return fn();
-    } else {
-      console.warn(`No translation key found for input '${id}', falling back to ID`);
-      return grandPrixId;
-    }
   }
 
   const future = $derived(isInFuture(weekend.startDate));

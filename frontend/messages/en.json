@@ -52,9 +52,11 @@
   "gp_bahrain": "Bahrain Grand Prix",
   "weekend_page_heading": "Season {year}",
   "nav_entry_races": "Races",
+  "nav_entry_sessions": "Sessions",
   "hero_heading": "Community ratings for Formula 1 sessions.",
   "hero_sub_heading": "Inspired by the excellent {#link to=|https://wikihoops.com|}wikihoops{/link}. Data sourced from {#link to=|https://github.com/f1db/f1db|}f1db{/link}.",
   "hero_button": "View current races",
   "session_selector_label": "Jump to",
-  "race_voting_not_yet": "Voting opens once the weekend gets underway."
+  "race_voting_not_yet": "Voting opens once the weekend gets underway.",
+  "session_page_heading": "Sessions"
 }
