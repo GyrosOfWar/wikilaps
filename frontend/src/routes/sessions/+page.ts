@@ -1,8 +1,9 @@
 import { getYearsOfData, listSessions } from "$lib/api.js";
 
-export const load = async ({ fetch }) => {
+export const load = async ({ fetch, url }) => {
+  const page = parseInt(url.searchParams.get("page") ?? "0");
   const [sessions, years] = await Promise.all([
-    listSessions(null, 20, null, null, null, { fetch }),
+    listSessions(page, 20, null, null, "race", { fetch }),
     getYearsOfData({ fetch }),
   ]);
 

@@ -1,12 +1,16 @@
 <script lang="ts">
+  import { goto } from "$app/navigation";
+  import { resolve } from "$app/paths";
   import { formatDate } from "$lib/date-time.js";
   import { grandPrixName } from "$lib/i18n.js";
   import * as m from "$lib/paraglide/messages";
+  import { ArrowLeftIcon, ArrowRightIcon } from "@lucide/svelte";
+  import { Pagination } from "@skeletonlabs/skeleton-svelte";
 
   let { data } = $props();
 </script>
 
-<div class="max-w-3xl w-full self-center">
+<div class="max-w-3xl w-full self-center flex flex-col">
   <h1 class="h2 font-bold tracking-tight">
     {m.session_page_heading()}
   </h1>
@@ -25,11 +29,39 @@
               {grandPrixName(session.grandPrixId)}
             </h2>
             <p class="text-sm opacity-60">
-              <!-- {m.race_weekend_round({ n: session.round })} · {formatDate(session.startDate)} -->
+              {formatDate(session.raceWeekendStartDate)}
             </p>
           </div>
         </header>
       </div>
     {/each}
   </section>
+
+  <Pagination
+    class="self-center mt-4"
+    count={data.sessions.totalItems}
+    pageSize={data.sessions.pageSize}
+    page={data.sessions.pageNumber}
+    onPageChange={(event) => goto(resolve(`/sessions?page=${event.page}`))}
+  >
+    <Pagination.PrevTrigger>
+      <ArrowLeftIcon class="size-4" />
+    </Pagination.PrevTrigger>
+    <Pagination.Context>
+      {#snippet children(pagination)}
+        {#each pagination().pages as page, index (page)}
+          {#if page.type === "page"}
+            <Pagination.Item {...page}>
+              {page.value}
+            </Pagination.Item>
+          {:else}
+            <Pagination.Ellipsis {index}>&#8230;</Pagination.Ellipsis>
+          {/if}
+        {/each}
+      {/snippet}
+    </Pagination.Context>
+    <Pagination.NextTrigger>
+      <ArrowRightIcon class="size-4" />
+    </Pagination.NextTrigger>
+  </Pagination>
 </div>

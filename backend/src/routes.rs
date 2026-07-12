@@ -249,7 +249,7 @@ pub async fn create_vote(
     Ok(StatusCode::CREATED)
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Debug, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct SessionListResponse {
     pub id: i64,
@@ -301,7 +301,7 @@ pub struct SessionListFilter {
     path = "/api/race/sessions", 
     params(PageParameters, SessionListFilter),
     method(get), responses(
-        (status = OK, description = "Success", body = Page<RaceWeekendResponse>)
+        (status = OK, description = "Success", body = Page<SessionListResponse>)
     )
 )]
 pub async fn list_sessions(

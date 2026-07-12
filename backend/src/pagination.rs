@@ -9,7 +9,7 @@ pub struct PageParameters {
 }
 
 impl PageParameters {
-    pub const DEFAULT_PAGE: i64 = 0;
+    pub const DEFAULT_PAGE: i64 = 1;
     pub const DEFAULT_SIZE: i64 = 20;
 
     #[allow(unused)]
@@ -26,9 +26,7 @@ impl PageParameters {
     }
 
     pub fn offset(&self) -> i64 {
-        self.page
-            .map(|p| p as i64 * self.limit())
-            .unwrap_or(Self::DEFAULT_PAGE)
+        self.page.unwrap_or(Self::DEFAULT_PAGE as u32) as i64 * self.limit()
     }
 
     pub fn size(&self) -> i64 {

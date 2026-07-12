@@ -14,12 +14,28 @@ const oazapfts = Oazapfts.runtime(defaults);
 export const servers = {};
 export type SessionType = "sprint_qualifying" | "sprint_race" | "qualifying" | "race";
 export type String = string;
-export type VoteType = "FullRace" | "RaceIn30" | "Highlights";
 export type VoteCounts = {
   full: number;
   highlights: number;
   raceIn30?: number | null;
 };
+export type PageSessionListResponse = {
+  content: {
+    countryKey: string;
+    grandPrixId: string;
+    id: number;
+    raceWeekendStartDate: String;
+    round: number;
+    sessionStartTime: String;
+    sessionType: SessionType;
+    votes: VoteCounts;
+  }[];
+  pageNumber: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+};
+export type VoteType = "FullRace" | "RaceIn30" | "Highlights";
 export type SessionResponse = {
   endTime?: null | String;
   id: number;
@@ -28,24 +44,6 @@ export type SessionResponse = {
   userVote?: null | VoteType;
   votes: VoteCounts;
   votingAllowed: boolean;
-};
-export type PageRaceWeekendResponse = {
-  content: {
-    circuitFullName: string;
-    countryKey: string;
-    grandPrixId: string;
-    id: number;
-    location: string;
-    officialName: string;
-    round: number;
-    sessions: SessionResponse[];
-    startDate: String;
-    year: number;
-  }[];
-  pageNumber: number;
-  pageSize: number;
-  totalItems: number;
-  totalPages: number;
 };
 export type RaceWeekendResponse = {
   circuitFullName: string;
@@ -73,7 +71,7 @@ export function listSessions(
 ) {
   return oazapfts.fetchJson<{
     status: 200;
-    data: PageRaceWeekendResponse;
+    data: PageSessionListResponse;
   }>("/api/race/sessions", {
     ...opts,
   });

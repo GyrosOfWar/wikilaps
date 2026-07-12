@@ -301,18 +301,18 @@ impl Database {
             FROM session s
             JOIN race_weekend rw ON s.weekend_id = rw.id
             LEFT JOIN votes v on v.session_id = s.id
-            WHERE ($4::integer IS NULL OR rw.year = $4)
-                AND ($5::session_type IS NULL OR s.session_type = $5) 
+            WHERE ($1::integer IS NULL OR rw.year = $1)
+                AND ($2::session_type IS NULL OR s.session_type = $2)
+                AND s.start_time < NOW()
             GROUP BY rw.id, s.id
-            ORDER BY $3 DESC
-            LIMIT $1
-            OFFSET $2
+            ORDER BY rw.start_date DESC
+            LIMIT $3
+            OFFSET $4
             "#,
-            page.limit(),
-            page.offset(),
-            page.sort.as_deref().unwrap_or("start_date"),
             filter.year,
             filter.session_type as _,
+            page.limit(),
+            page.offset(),
         )
         .fetch_all(&self.db)
         .await?;
