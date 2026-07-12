@@ -46,6 +46,11 @@ export const handleFetch: HandleFetch = async ({ event, request, fetch }) => {
   if (cookie) {
     proxied.headers.set("cookie", cookie);
   }
+  // Forward the real user-agent so the backend sees the browser, not "node".
+  const userAgent = event.request.headers.get("user-agent");
+  if (userAgent) {
+    proxied.headers.set("user-agent", userAgent);
+  }
 
   const response = await fetch(proxied);
 

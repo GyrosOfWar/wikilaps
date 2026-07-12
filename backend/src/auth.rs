@@ -6,6 +6,7 @@ use axum_extra::extract::cookie::{Cookie, CookieJar, SameSite};
 use base64::{Engine, prelude::BASE64_URL_SAFE_NO_PAD};
 use hmac::{Hmac, KeyInit, Mac};
 use sha2::Sha256;
+use tracing::info;
 
 use crate::{error::AppError, routes::AppState};
 
@@ -53,10 +54,17 @@ pub fn build_cookie(value: String, secure: bool) -> Cookie<'static> {
         .build()
 }
 
-/// Best-effort client IP for logging: first hop of `X-Forwarded-For` if present
-/// (set by a trusted reverse proxy), otherwise unknown. Never trusted for
-/// identity or authorization.
 pub fn client_ip(headers: &HeaderMap) -> Option<String> {
+    if let Some(ip) = headers
+        .get("cf-connecting-ip")
+        .and_then(|h| h.to_str().ok())
+    {
+        let trimmed = ip.trim();
+        if !trimmed.is_empty() {
+            return Some(trimmed.to_owned());
+        }
+    }
+
     let forwarded = headers.get("x-forwarded-for")?.to_str().ok()?;
     forwarded
         .split(',')
