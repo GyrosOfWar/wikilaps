@@ -6,7 +6,6 @@ use axum_extra::extract::cookie::{Cookie, CookieJar, SameSite};
 use base64::{Engine, prelude::BASE64_URL_SAFE_NO_PAD};
 use hmac::{Hmac, KeyInit, Mac};
 use sha2::Sha256;
-use tracing::info;
 
 use crate::{error::AppError, routes::AppState};
 

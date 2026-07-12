@@ -17,7 +17,7 @@
 </svelte:head>
 
 <header
-  class="z-50 sticky top-0 border-b border-surface-200-800 bg-surface-50-950/75 backdrop-blur-lg h-(--header-height) flex items-center"
+  class="border-b border-surface-200-800 bg-surface-50-950 h-(--header-height) flex items-center"
 >
   <div class="container mx-auto p-4 flex items-center justify-between gap-2">
     <a href={resolve("/")} class="flex items-center gap-2.5">

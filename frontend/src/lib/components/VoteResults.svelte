@@ -100,10 +100,12 @@
       <div class="space-y-2">
         {#each options as option (option.value)}
           <label
-            class="flex cursor-pointer items-center gap-2 rounded border px-3 py-2 text-sm font-medium transition-colors {selected ===
-            option.value
-              ? 'border-primary-500 preset-tonal-primary'
-              : 'border-surface-200-800 hover:preset-tonal-surface'}"
+            class={[
+              "flex cursor-pointer items-center gap-2 rounded border px-3 py-2 text-sm font-medium transition-colors",
+              selected === option.value
+                ? "border-primary-500 preset-tonal-primary"
+                : "border-surface-200-800 hover:preset-tonal-surface",
+            ]}
           >
             <input
               type="radio"

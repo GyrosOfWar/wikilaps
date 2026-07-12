@@ -1,11 +1,14 @@
 <script lang="ts">
   import { resolve } from "$app/paths";
   import { submitVote } from "$lib/client.js";
+  import JumpToTopButton from "$lib/components/JumpToTopButton.svelte";
   import RaceWeekendCard from "$lib/components/RaceWeekendCard.svelte";
   import * as m from "$lib/paraglide/messages";
 
   const { data } = $props();
 </script>
+
+<JumpToTopButton />
 
 <div class="max-w-3xl w-full self-center">
   <h1 class="h2 font-bold tracking-tight">
@@ -53,8 +56,8 @@
     {#each data.weekends as weekend (weekend.id)}
       <RaceWeekendCard
         {weekend}
-        class="border border-surface-200-800 shadow-xl bg-tertiary-50-950"
         onSubmitVote={submitVote}
+        class="border border-surface-200-800 shadow-xl bg-tertiary-50 dark:bg-surface-800"
       />
     {/each}
   </section>
