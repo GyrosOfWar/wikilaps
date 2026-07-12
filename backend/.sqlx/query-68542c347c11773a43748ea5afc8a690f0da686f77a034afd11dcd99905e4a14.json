@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT \n                s.id, rw.grand_prix_id, rw.country_key,\n                rw.start_date AS \"race_weekend_start_time: jiff_sqlx::Date\",\n                s.start_time AS \"session_start_time: jiff_sqlx::Timestamp\",\n                rw.round, s.session_type AS \"session_type: SessionType\",\n                count(v.id) FILTER (WHERE v.vote_type = 'FullRace'::vote_type)   AS \"full_race!\",\n                count(v.id) FILTER (WHERE v.vote_type = 'RaceIn30'::vote_type)   AS \"race_in_30!\",\n                count(v.id) FILTER (WHERE v.vote_type = 'Highlights'::vote_type) AS \"highlights!\"\n            FROM session s\n            JOIN race_weekend rw ON s.weekend_id = rw.id\n            LEFT JOIN votes v on v.session_id = s.id\n            GROUP BY rw.id, s.id\n            ORDER BY $3 DESC\n            LIMIT $1\n            OFFSET $2\n            ",
+  "query": "SELECT \n                s.id, rw.grand_prix_id, rw.country_key,\n                rw.start_date AS \"race_weekend_start_time: jiff_sqlx::Date\",\n                s.start_time AS \"session_start_time: jiff_sqlx::Timestamp\",\n                rw.round, s.session_type AS \"session_type: SessionType\",\n                count(v.id) FILTER (WHERE v.vote_type = 'FullRace'::vote_type)   AS \"full_race!\",\n                count(v.id) FILTER (WHERE v.vote_type = 'RaceIn30'::vote_type)   AS \"race_in_30!\",\n                count(v.id) FILTER (WHERE v.vote_type = 'Highlights'::vote_type) AS \"highlights!\"\n            FROM session s\n            JOIN race_weekend rw ON s.weekend_id = rw.id\n            LEFT JOIN votes v on v.session_id = s.id\n            WHERE ($4::integer IS NULL OR rw.year = $4)\n                AND ($5::session_type IS NULL OR s.session_type = $5) \n            GROUP BY rw.id, s.id\n            ORDER BY $3 DESC\n            LIMIT $1\n            OFFSET $2\n            ",
   "describe": {
     "columns": [
       {
@@ -115,7 +115,21 @@
       "Left": [
         "Int8",
         "Int8",
-        "Text"
+        "Text",
+        "Int4",
+        {
+          "Custom": {
+            "name": "session_type",
+            "kind": {
+              "Enum": [
+                "sprint_qualifying",
+                "sprint_race",
+                "qualifying",
+                "race"
+              ]
+            }
+          }
+        }
       ]
     },
     "nullable": [
@@ -131,5 +145,5 @@
       null
     ]
   },
-  "hash": "03ee09d42b7730b5f78d65f37defc6d03e57cf1fbbdc58dc7f37b2e3c1767ae3"
+  "hash": "68542c347c11773a43748ea5afc8a690f0da686f77a034afd11dcd99905e4a14"
 }
