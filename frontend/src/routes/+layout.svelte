@@ -40,3 +40,7 @@
 <main class="container mx-auto mt-4 flex flex-col px-4">
   {@render children()}
 </main>
+
+<footer class="text-base-content/55 mt-auto py-3 text-center text-xs">
+  wikilaps {__APP_VERSION__}
+</footer>

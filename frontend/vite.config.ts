@@ -5,7 +5,12 @@ import { playwright } from "@vitest/browser-playwright";
 import adapter from "@sveltejs/adapter-node";
 import { sveltekit } from "@sveltejs/kit/vite";
 
+const appVersion = process.env.APP_VERSION ?? "dev";
+
 export default defineConfig({
+  define: {
+    __APP_VERSION__: JSON.stringify(appVersion),
+  },
   server: {
     proxy: {
       "/api": "http://localhost:13252",
