@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.5.1](https://github.com/GyrosOfWar/wikilaps/compare/v0.5.0...v0.5.1) (2026-07-12)
+
+
+### Bug Fixes
+
+* improve dark mode appearance and add "jump to top" button to weekend list ([df41412](https://github.com/GyrosOfWar/wikilaps/commit/df41412a5ef4113b0522ed290a1c33f11d6ba85e))
+* read client IP from cf-connecting-ip and forward user-agent to the backend ([e145788](https://github.com/GyrosOfWar/wikilaps/commit/e145788766f0a60836ae3d18f81c33ac2f76cbdd))
+
 ## [0.5.0](https://github.com/GyrosOfWar/wikilaps/compare/v0.4.1...v0.5.0) (2026-07-11)
 
 
