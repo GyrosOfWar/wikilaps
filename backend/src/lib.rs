@@ -29,7 +29,7 @@ pub async fn create_router() -> Result<(Router, AppConfig)> {
         .routes(routes!(routes::init_session))
         .routes(routes!(routes::create_vote))
         .routes(routes!(routes::get_years_of_data))
-        .routes(routes!(routes::get_race_sessions))
+        .routes(routes!(routes::list_sessions))
         .with_state(AppState {
             db: database,
             cookie_secret: config.cookie_secret.clone().into(),

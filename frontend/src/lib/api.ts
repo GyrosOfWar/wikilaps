@@ -63,7 +63,12 @@ export type VoteRequest = {
   sessionId: number;
   vote: VoteType;
 };
-export function getRaceSessions(opts?: Oazapfts.RequestOpts) {
+export function listSessions(
+  page: number | null,
+  size: number | null,
+  sort: string | null,
+  opts?: Oazapfts.RequestOpts,
+) {
   return oazapfts.fetchJson<{
     status: 200;
     data: PageRaceWeekendResponse;

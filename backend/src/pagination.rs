@@ -1,19 +1,11 @@
 use serde::{Deserialize, Serialize};
-use utoipa::ToSchema;
+use utoipa::{IntoParams, ToSchema};
 
-#[derive(Deserialize, Debug, Clone, Copy)]
-#[serde(rename_all = "camelCase")]
-pub enum SortDirection {
-    Asc,
-    Desc,
-}
-
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Debug, Clone, IntoParams)]
 pub struct PageParameters {
     pub page: Option<u32>,
     pub size: Option<u32>,
     pub sort: Option<String>,
-    pub dir: Option<SortDirection>,
 }
 
 impl PageParameters {
@@ -26,7 +18,6 @@ impl PageParameters {
             page: Some(page),
             size: Some(size),
             sort: None,
-            dir: None,
         }
     }
 

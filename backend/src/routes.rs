@@ -291,11 +291,12 @@ impl From<database::Session> for SessionListResponse {
 #[axum::debug_handler]
 #[utoipa::path(
     path = "/api/race/sessions", 
+    params(PageParameters),
     method(get), responses(
         (status = OK, description = "Success", body = Page<RaceWeekendResponse>)
     )
 )]
-pub async fn get_race_sessions(
+pub async fn list_sessions(
     State(state): State<AppState>,
     Query(page): Query<PageParameters>,
 ) -> Result<Json<Page<SessionListResponse>>> {

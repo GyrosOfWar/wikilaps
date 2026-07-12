@@ -303,7 +303,7 @@ impl Database {
             "#,
             page.limit(),
             page.offset(),
-            "start_date",
+            page.sort.as_deref().unwrap_or("start_date"),
         )
         .fetch_all(&self.db)
         .await?;
