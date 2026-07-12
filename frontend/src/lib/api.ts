@@ -12,8 +12,8 @@ export const defaults: Oazapfts.Defaults<Oazapfts.CustomHeaders> = {
 };
 const oazapfts = Oazapfts.runtime(defaults);
 export const servers = {};
-export type String = string;
 export type SessionType = "sprint_qualifying" | "sprint_race" | "qualifying" | "race";
+export type String = string;
 export type VoteType = "FullRace" | "RaceIn30" | "Highlights";
 export type VoteCounts = {
   full: number;
@@ -67,6 +67,8 @@ export function listSessions(
   page: number | null,
   size: number | null,
   sort: string | null,
+  year: number | null,
+  $type: null | SessionType,
   opts?: Oazapfts.RequestOpts,
 ) {
   return oazapfts.fetchJson<{

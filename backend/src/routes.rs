@@ -15,7 +15,7 @@ use jiff::{Timestamp, civil::Date};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tracing::info;
-use utoipa::ToSchema;
+use utoipa::{IntoParams, ToSchema};
 
 #[derive(Clone)]
 pub struct AppState {
@@ -288,10 +288,18 @@ impl From<database::Session> for SessionListResponse {
     }
 }
 
+#[derive(Deserialize, IntoParams)]
+pub struct SessionListFilter {
+    pub year: Option<i32>,
+
+    #[serde(rename = "type")]
+    pub session_type: Option<SessionType>,
+}
+
 #[axum::debug_handler]
 #[utoipa::path(
     path = "/api/race/sessions", 
-    params(PageParameters),
+    params(PageParameters, SessionListFilter),
     method(get), responses(
         (status = OK, description = "Success", body = Page<RaceWeekendResponse>)
     )
@@ -299,10 +307,13 @@ impl From<database::Session> for SessionListResponse {
 pub async fn list_sessions(
     State(state): State<AppState>,
     Query(page): Query<PageParameters>,
+    Query(filter): Query<SessionListFilter>,
 ) -> Result<Json<Page<SessionListResponse>>> {
+    // TODO validate that the sort column is valid
+
     let page = state
         .db
-        .list_sessions(page)
+        .list_sessions(page, filter)
         .await?
         .map(SessionListResponse::from);
     Ok(Json(page))

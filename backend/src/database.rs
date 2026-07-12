@@ -1,13 +1,14 @@
 use crate::{
     error::{AppError, Result},
     pagination::{Page, PageParameters},
+    routes::SessionListFilter,
     util::voting_allowed,
 };
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use utoipa::ToSchema;
 
-#[derive(Debug, Clone, Copy, sqlx::Type, Serialize, ToSchema)]
+#[derive(Debug, Clone, Copy, sqlx::Type, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "snake_case")]
 #[sqlx(type_name = "session_type", rename_all = "snake_case")]
 pub enum SessionType {
@@ -283,7 +284,11 @@ impl Database {
         Ok(())
     }
 
-    pub async fn list_sessions(&self, page: PageParameters) -> Result<Page<Session>> {
+    pub async fn list_sessions(
+        &self,
+        page: PageParameters,
+        filter: SessionListFilter,
+    ) -> Result<Page<Session>> {
         let rows = sqlx::query!(
             r#"SELECT 
                 s.id, rw.grand_prix_id, rw.country_key,
@@ -296,6 +301,8 @@ impl Database {
             FROM session s
             JOIN race_weekend rw ON s.weekend_id = rw.id
             LEFT JOIN votes v on v.session_id = s.id
+            WHERE ($4::integer IS NULL OR rw.year = $4)
+                AND ($5::session_type IS NULL OR s.session_type = $5) 
             GROUP BY rw.id, s.id
             ORDER BY $3 DESC
             LIMIT $1
@@ -304,6 +311,8 @@ impl Database {
             page.limit(),
             page.offset(),
             page.sort.as_deref().unwrap_or("start_date"),
+            filter.year,
+            filter.session_type as _,
         )
         .fetch_all(&self.db)
         .await?;
