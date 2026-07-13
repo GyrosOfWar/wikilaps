@@ -58,5 +58,8 @@
   "hero_button": "View current races",
   "session_selector_label": "Jump to",
   "race_voting_not_yet": "Voting opens once the weekend gets underway.",
-  "session_page_heading": "Sessions"
+  "session_page_heading": "Sessions",
+  "seo_default_description": "Spoiler-free community ratings for Formula 1 sessions. Vote on whether each race is worth watching in full, in 30 minutes, or just as highlights.",
+  "seo_races_description": "Browse every Formula 1 race weekend of the {year} season and rate how each session is worth watching.",
+  "seo_sessions_description": "Browse and rate every Formula 1 session, spoiler-free."
 }

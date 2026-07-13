@@ -13,7 +13,9 @@
 
 <svelte:head>
   <link rel="icon" href={favicon} />
-  <title>wikilaps</title>
+  <meta property="og:site_name" content={m.app_name()} />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary" />
 </svelte:head>
 
 <div class="min-h-screen flex flex-col">

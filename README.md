@@ -5,6 +5,8 @@ by [wikihoops.com](https://wikihoops.com). Using Rust + Axum + PostgreSQL +
 sqlx for the backend and SvelteKit, Tailwind and Skeleton (component library)
 for the frontend.
 
+The site lives at [wikilaps.com](https://wikilaps.com).
+
 ## AI usage note
 
 I've used Claude for some code in this repository (mostly frontend and boring

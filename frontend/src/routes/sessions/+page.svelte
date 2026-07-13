@@ -3,12 +3,15 @@
   import { resolve } from "$app/paths";
   import { formatDate } from "$lib/date-time.js";
   import { grandPrixName } from "$lib/i18n.js";
+  import Seo from "$lib/components/Seo.svelte";
   import * as m from "$lib/paraglide/messages";
   import { ArrowLeftIcon, ArrowRightIcon } from "@lucide/svelte";
   import { Pagination } from "@skeletonlabs/skeleton-svelte";
 
   let { data } = $props();
 </script>
+
+<Seo title={m.session_page_heading()} description={m.seo_sessions_description()} />
 
 <div class="max-w-3xl w-full self-center flex flex-col">
   <h1 class="h2 font-bold tracking-tight">

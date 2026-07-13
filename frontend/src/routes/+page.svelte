@@ -4,11 +4,14 @@
   import { ParaglideMessage } from "@inlang/paraglide-js-svelte";
 
   import RaceWeekendCard from "$lib/components/RaceWeekendCard.svelte";
+  import Seo from "$lib/components/Seo.svelte";
   import ArrowRight from "@lucide/svelte/icons/arrow-right";
   import * as m from "$lib/paraglide/messages";
 
   const { data } = $props();
 </script>
+
+<Seo />
 
 <section class="max-w-2xl w-full mt-10 self-center">
   <h1 class="h1 font-bold tracking-tight text-balance mb-4">
