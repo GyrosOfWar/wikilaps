@@ -55,6 +55,10 @@ export type RaceWeekendResponse = {
   round: number;
   sessions: SessionResponse[];
   startDate: String;
+  /** True while none of the weekend's sessions have started yet — the UI
+    renders such weekends as disabled. Computed server-side so it stays
+    consistent with each session's `voting_allowed`. */
+  upcoming: boolean;
   year: number;
 };
 export type VoteRequest = {

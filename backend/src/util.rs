@@ -21,6 +21,14 @@ pub fn voting_allowed(start_time: Timestamp, session_type: SessionType) -> bool 
     distance.is_negative()
 }
 
+/// A race weekend is "upcoming" (and rendered as disabled) as long as none of
+/// its sessions have started yet. Deriving this from the session start times —
+/// rather than the weekend's start date — keeps it consistent with the
+/// per-session [`voting_allowed`] check, which also uses full timestamps.
+pub fn weekend_upcoming(now: Timestamp, session_start_times: &[Timestamp]) -> bool {
+    session_start_times.iter().all(|&start| start > now)
+}
+
 #[cfg(test)]
 mod test {
     #![allow(clippy::bool_assert_comparison)]
@@ -66,5 +74,27 @@ mod test {
             true,
             voting_allowed(start_time, SessionType::SprintQualifying)
         );
+    }
+
+    #[test]
+    fn weekend_upcoming_all_future() {
+        let now = Timestamp::now();
+        let starts = [now + Span::new().hours(3), now + Span::new().hours(5)];
+        assert_eq!(true, weekend_upcoming(now, &starts));
+    }
+
+    #[test]
+    fn weekend_upcoming_first_session_started() {
+        let now = Timestamp::now();
+        // FP1 three hours ago, remaining sessions still to come.
+        let starts = [now - Span::new().hours(3), now + Span::new().hours(2)];
+        assert_eq!(false, weekend_upcoming(now, &starts));
+    }
+
+    #[test]
+    fn weekend_upcoming_all_elapsed() {
+        let now = Timestamp::now();
+        let starts = [now - Span::new().hours(5), now - Span::new().hours(3)];
+        assert_eq!(false, weekend_upcoming(now, &starts));
     }
 }

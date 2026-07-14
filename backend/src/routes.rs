@@ -3,7 +3,7 @@ use crate::{
     database::{self, Database, RaceWeekend, SessionType, SessionWithVotes, VoteType},
     error::Result,
     pagination::{Page, PageParameters},
-    util::voting_allowed,
+    util::{voting_allowed, weekend_upcoming},
 };
 use axum::{
     Json,
@@ -40,6 +40,10 @@ pub struct RaceWeekendResponse {
     pub round: i32,
     pub official_name: String,
     pub sessions: Vec<SessionResponse>,
+    /// True while none of the weekend's sessions have started yet — the UI
+    /// renders such weekends as disabled. Computed server-side so it stays
+    /// consistent with each session's `voting_allowed`.
+    pub upcoming: bool,
 }
 
 #[derive(Debug, Serialize, ToSchema)]
@@ -64,6 +68,12 @@ pub struct VoteCounts {
 
 impl From<RaceWeekend> for RaceWeekendResponse {
     fn from(value: RaceWeekend) -> Self {
+        let sessions: Vec<SessionResponse> = value
+            .sessions
+            .into_iter()
+            .map(SessionResponse::from)
+            .collect();
+        let start_times: Vec<Timestamp> = sessions.iter().map(|s| s.start_time).collect();
         RaceWeekendResponse {
             id: value.id,
             year: value.year,
@@ -74,11 +84,8 @@ impl From<RaceWeekend> for RaceWeekendResponse {
             start_date: value.start_date.to_jiff(),
             round: value.round,
             official_name: value.official_name,
-            sessions: value
-                .sessions
-                .into_iter()
-                .map(SessionResponse::from)
-                .collect(),
+            upcoming: weekend_upcoming(Timestamp::now(), &start_times),
+            sessions,
         }
     }
 }

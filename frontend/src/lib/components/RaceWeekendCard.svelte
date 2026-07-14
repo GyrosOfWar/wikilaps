@@ -2,7 +2,6 @@
   import type { ClassValue } from "svelte/elements";
   import type { RaceWeekendResponse, VoteType } from "$lib/api";
   import { formatDate } from "$lib/date-time";
-  import { Temporal } from "temporal-polyfill";
   import VoteResults from "./VoteResults.svelte";
   import { grandPrixName, sessionTypeLabel } from "$lib/i18n";
   import * as m from "$lib/paraglide/messages";
@@ -14,19 +13,12 @@
   }
 
   let { weekend, onSubmitVote, class: klass }: Props = $props();
-
-  function isInFuture(date: string): boolean {
-    const until = Temporal.PlainDate.from(date).until(Temporal.Now.plainDateISO());
-    return until.total("second") < 0;
-  }
-
-  const future = $derived(isInFuture(weekend.startDate));
 </script>
 
 <div
   id="round-{weekend.round}"
-  aria-disabled={future}
-  class={["card card-hover overflow-hidden", future && "opacity-70", klass]}
+  aria-disabled={weekend.upcoming}
+  class={["card card-hover overflow-hidden", weekend.upcoming && "opacity-70", klass]}
 >
   <header class="flex items-center gap-3 border-b border-surface-200-800 p-4">
     <span class="badge preset-filled-secondary-500 shrink-0 font-bold">
@@ -45,7 +37,7 @@
   </header>
 
   <div class="p-4">
-    {#if future}
+    {#if weekend.upcoming}
       <p class="text-sm opacity-60">
         {m.race_voting_not_yet()}
       </p>

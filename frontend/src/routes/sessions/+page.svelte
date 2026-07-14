@@ -1,9 +1,9 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
   import { resolve } from "$app/paths";
-  import { formatDate } from "$lib/date-time.js";
-  import { grandPrixName } from "$lib/i18n.js";
   import Seo from "$lib/components/Seo.svelte";
+  import { formatDate } from "$lib/date-time.js";
+  import { grandPrixName, sessionTypeLabel } from "$lib/i18n.js";
   import * as m from "$lib/paraglide/messages";
   import { ArrowLeftIcon, ArrowRightIcon } from "@lucide/svelte";
   import { Pagination } from "@skeletonlabs/skeleton-svelte";
@@ -29,7 +29,7 @@
           ></span>
           <div class="min-w-0 grow">
             <h2 class="h5 truncate font-bold">
-              {grandPrixName(session.grandPrixId)}
+              {grandPrixName(session.grandPrixId)} - {sessionTypeLabel(session.sessionType)}
             </h2>
             <p class="text-sm opacity-60">
               {formatDate(session.raceWeekendStartDate)}
