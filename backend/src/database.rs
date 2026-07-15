@@ -1,12 +1,17 @@
 use crate::{
-    error::{AppError, Result},
+    error::{
+        AppError::{self, Validation},
+        Result,
+    },
+    pagination::{Page, PageParameters},
+    routes::SessionListFilter,
     util::voting_allowed,
 };
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use utoipa::ToSchema;
 
-#[derive(Debug, Clone, Copy, sqlx::Type, Serialize, ToSchema)]
+#[derive(Debug, Clone, Copy, sqlx::Type, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "snake_case")]
 #[sqlx(type_name = "session_type", rename_all = "snake_case")]
 pub enum SessionType {
@@ -22,6 +27,18 @@ pub enum VoteType {
     FullRace,
     RaceIn30,
     Highlights,
+}
+
+#[derive(Debug)]
+pub struct Session {
+    pub id: i64,
+    pub grand_prix_id: String,
+    pub country_key: String,
+    pub race_weekend_start_date: jiff_sqlx::Date,
+    pub session_start_time: jiff_sqlx::Timestamp,
+    pub round: i32,
+    pub votes: VoteCounts,
+    pub session_type: SessionType,
 }
 
 #[derive(Debug)]
@@ -268,6 +285,86 @@ impl Database {
         .await?;
 
         Ok(())
+    }
+
+    pub async fn list_sessions(
+        &self,
+        page: PageParameters,
+        filter: SessionListFilter,
+    ) -> Result<Page<Session>> {
+        const VALID_SORT: [&str; 2] = ["score", "start_date"];
+
+        let sort_valid = page
+            .sort
+            .as_deref()
+            .map(|s| VALID_SORT.contains(&s))
+            .unwrap_or(true);
+
+        if !sort_valid {
+            return Err(Validation("Invalid sort parameter"));
+        }
+
+        let rows = sqlx::query!(
+            r#"SELECT 
+                s.id, rw.grand_prix_id, rw.country_key,
+                rw.start_date AS "race_weekend_start_time: jiff_sqlx::Date",
+                s.start_time AS "session_start_time: jiff_sqlx::Timestamp",
+                rw.round, s.session_type AS "session_type: SessionType",
+                count(v.id) FILTER (WHERE v.vote_type = 'FullRace'::vote_type)   AS "full_race!",
+                count(v.id) FILTER (WHERE v.vote_type = 'RaceIn30'::vote_type)   AS "race_in_30!",
+                count(v.id) FILTER (WHERE v.vote_type = 'Highlights'::vote_type) AS "highlights!"
+            FROM session s
+            JOIN race_weekend rw ON s.weekend_id = rw.id
+            LEFT JOIN votes v on v.session_id = s.id
+            WHERE ($1::integer IS NULL OR rw.year = $1)
+                AND ($2::session_type IS NULL OR s.session_type = $2)
+                AND s.start_time < NOW()
+            GROUP BY rw.id, s.id
+            ORDER BY
+                CASE
+                    WHEN $5 = 'start_date' THEN rw.start_date
+                END DESC,
+                CASE
+                    WHEN $5 = 'score' THEN
+                        count(v.id) FILTER (WHERE v.vote_type = 'FullRace'::vote_type)::float8
+                        / NULLIF(count(v.id), 0)
+                END DESC NULLS LAST
+            LIMIT $3
+            OFFSET $4
+            "#,
+            filter.year,
+            filter.session_type as _,
+            page.limit(),
+            page.offset(),
+            page.sort.as_deref().unwrap_or("start_date"),
+        )
+        .fetch_all(&self.db)
+        .await?;
+
+        let count = sqlx::query_scalar!("SELECT count(*) FROM session")
+            .fetch_one(&self.db)
+            .await?
+            .unwrap_or_default();
+
+        let sessions: Vec<_> = rows
+            .into_iter()
+            .map(|r| Session {
+                id: r.id,
+                grand_prix_id: r.grand_prix_id,
+                country_key: r.country_key,
+                race_weekend_start_date: r.race_weekend_start_time,
+                session_start_time: r.session_start_time,
+                session_type: r.session_type,
+                round: r.round,
+                votes: VoteCounts {
+                    full_race: r.full_race,
+                    race_in_30: r.race_in_30,
+                    highlights: r.highlights,
+                },
+            })
+            .collect();
+
+        Ok(Page::new(sessions, count as u32, page))
     }
 
     pub async fn insert_vote(

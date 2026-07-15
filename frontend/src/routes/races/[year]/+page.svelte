@@ -3,10 +3,16 @@
   import { submitVote } from "$lib/client.js";
   import JumpToTopButton from "$lib/components/JumpToTopButton.svelte";
   import RaceWeekendCard from "$lib/components/RaceWeekendCard.svelte";
+  import Seo from "$lib/components/Seo.svelte";
   import * as m from "$lib/paraglide/messages";
 
   const { data } = $props();
 </script>
+
+<Seo
+  title={m.weekend_page_heading({ year: data.year })}
+  description={m.seo_races_description({ year: data.year })}
+/>
 
 <JumpToTopButton />
 

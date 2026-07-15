@@ -52,9 +52,21 @@
   "gp_bahrain": "Bahrain Grand Prix",
   "weekend_page_heading": "Season {year}",
   "nav_entry_races": "Races",
+  "nav_entry_sessions": "Sessions",
   "hero_heading": "Community ratings for Formula 1 sessions.",
   "hero_sub_heading": "Inspired by the excellent {#link to=|https://wikihoops.com|}wikihoops{/link}. Data sourced from {#link to=|https://github.com/f1db/f1db|}f1db{/link}.",
   "hero_button": "View current races",
   "session_selector_label": "Jump to",
-  "race_voting_not_yet": "Voting opens once the weekend gets underway."
+  "race_voting_not_yet": "Voting opens once the weekend gets underway.",
+  "session_page_heading": "Sessions",
+  "session_filter_sort": "Sort",
+  "session_filter_year": "Year",
+  "session_filter_type": "Session type",
+  "session_filter_all": "All",
+  "session_sort_quality": "Quality",
+  "session_sort_recent": "Most recent",
+  "vote_summary_none": "No votes yet",
+  "seo_default_description": "Spoiler-free community ratings for Formula 1 sessions. Vote on whether each race is worth watching in full, in 30 minutes, or just as highlights.",
+  "seo_races_description": "Browse every Formula 1 race weekend of the {year} season and rate how each session is worth watching.",
+  "seo_sessions_description": "Browse and rate every Formula 1 session, spoiler-free."
 }

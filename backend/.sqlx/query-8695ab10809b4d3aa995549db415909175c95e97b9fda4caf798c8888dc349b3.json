@@ -1,0 +1,149 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT \n                s.id, rw.grand_prix_id, rw.country_key,\n                rw.start_date AS \"race_weekend_start_time: jiff_sqlx::Date\",\n                s.start_time AS \"session_start_time: jiff_sqlx::Timestamp\",\n                rw.round, s.session_type AS \"session_type: SessionType\",\n                count(v.id) FILTER (WHERE v.vote_type = 'FullRace'::vote_type)   AS \"full_race!\",\n                count(v.id) FILTER (WHERE v.vote_type = 'RaceIn30'::vote_type)   AS \"race_in_30!\",\n                count(v.id) FILTER (WHERE v.vote_type = 'Highlights'::vote_type) AS \"highlights!\"\n            FROM session s\n            JOIN race_weekend rw ON s.weekend_id = rw.id\n            LEFT JOIN votes v on v.session_id = s.id\n            WHERE ($1::integer IS NULL OR rw.year = $1)\n                AND ($2::session_type IS NULL OR s.session_type = $2)\n                AND s.start_time < NOW()\n            GROUP BY rw.id, s.id\n            ORDER BY\n                CASE\n                    WHEN $5 = 'start_date' THEN rw.start_date\n                END DESC,\n                CASE\n                    WHEN $5 = 'score' THEN\n                        count(v.id) FILTER (WHERE v.vote_type = 'FullRace'::vote_type)::float8\n                        / NULLIF(count(v.id), 0)\n                END DESC NULLS LAST\n            LIMIT $3\n            OFFSET $4\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "session",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "grand_prix_id",
+        "type_info": "Varchar",
+        "origin": {
+          "Table": {
+            "table": "race_weekend",
+            "name": "grand_prix_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "country_key",
+        "type_info": "Varchar",
+        "origin": {
+          "Table": {
+            "table": "race_weekend",
+            "name": "country_key"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "race_weekend_start_time: jiff_sqlx::Date",
+        "type_info": "Date",
+        "origin": {
+          "Table": {
+            "table": "race_weekend",
+            "name": "start_date"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "session_start_time: jiff_sqlx::Timestamp",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "session",
+            "name": "start_time"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "round",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "race_weekend",
+            "name": "round"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "session_type: SessionType",
+        "type_info": {
+          "Custom": {
+            "name": "session_type",
+            "kind": {
+              "Enum": [
+                "sprint_qualifying",
+                "sprint_race",
+                "qualifying",
+                "race"
+              ]
+            }
+          }
+        },
+        "origin": {
+          "Table": {
+            "table": "session",
+            "name": "session_type"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "full_race!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 8,
+        "name": "race_in_30!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 9,
+        "name": "highlights!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4",
+        {
+          "Custom": {
+            "name": "session_type",
+            "kind": {
+              "Enum": [
+                "sprint_qualifying",
+                "sprint_race",
+                "qualifying",
+                "race"
+              ]
+            }
+          }
+        },
+        "Int8",
+        "Int8",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      null,
+      null,
+      null
+    ]
+  },
+  "hash": "8695ab10809b4d3aa995549db415909175c95e97b9fda4caf798c8888dc349b3"
+}

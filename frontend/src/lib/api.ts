@@ -12,14 +12,30 @@ export const defaults: Oazapfts.Defaults<Oazapfts.CustomHeaders> = {
 };
 const oazapfts = Oazapfts.runtime(defaults);
 export const servers = {};
-export type String = string;
 export type SessionType = "sprint_qualifying" | "sprint_race" | "qualifying" | "race";
-export type VoteType = "FullRace" | "RaceIn30" | "Highlights";
+export type String = string;
 export type VoteCounts = {
   full: number;
   highlights: number;
   raceIn30?: number | null;
 };
+export type PageSessionListResponse = {
+  content: {
+    countryKey: string;
+    grandPrixId: string;
+    id: number;
+    raceWeekendStartDate: String;
+    round: number;
+    sessionStartTime: String;
+    sessionType: SessionType;
+    votes: VoteCounts;
+  }[];
+  pageNumber: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+};
+export type VoteType = "FullRace" | "RaceIn30" | "Highlights";
 export type SessionResponse = {
   endTime?: null | String;
   id: number;
@@ -39,17 +55,55 @@ export type RaceWeekendResponse = {
   round: number;
   sessions: SessionResponse[];
   startDate: String;
+  /** True while none of the weekend's sessions have started yet — the UI
+    renders such weekends as disabled. Computed server-side so it stays
+    consistent with each session's `voting_allowed`. */
+  upcoming: boolean;
   year: number;
 };
 export type VoteRequest = {
   sessionId: number;
   vote: VoteType;
 };
+export function listSessions(
+  {
+    page,
+    size,
+    sort,
+    year,
+    $type,
+  }: {
+    page?: number;
+    size?: number;
+    sort?: string;
+    year?: number;
+    $type?: SessionType;
+  } = {},
+  opts?: Oazapfts.RequestOpts,
+) {
+  return oazapfts.fetchJson<{
+    status: 200;
+    data: PageSessionListResponse;
+  }>(
+    `/api/race/sessions${QS.query(
+      QS.explode({
+        page,
+        size,
+        sort,
+        year,
+        type: $type,
+      }),
+    )}`,
+    {
+      ...opts,
+    },
+  );
+}
 export function getLatestWeekend(opts?: Oazapfts.RequestOpts) {
   return oazapfts.fetchJson<{
     status: 200;
     data: null | RaceWeekendResponse;
-  }>("/api/race-weekends/latest", {
+  }>("/api/race/weekends/latest", {
     ...opts,
   });
 }
@@ -57,7 +111,15 @@ export function listWeekends(year: number, opts?: Oazapfts.RequestOpts) {
   return oazapfts.fetchJson<{
     status: 200;
     data: RaceWeekendResponse[];
-  }>(`/api/race-weekends/${encodeURIComponent(year)}`, {
+  }>(`/api/race/weekends/${encodeURIComponent(year)}`, {
+    ...opts,
+  });
+}
+export function getYearsOfData(opts?: Oazapfts.RequestOpts) {
+  return oazapfts.fetchJson<{
+    status: 200;
+    data: number[];
+  }>("/api/race/years", {
     ...opts,
   });
 }
@@ -85,12 +147,4 @@ export function createVote(voteRequest: VoteRequest, opts?: Oazapfts.RequestOpts
       body: voteRequest,
     }),
   );
-}
-export function getYearsOfData(opts?: Oazapfts.RequestOpts) {
-  return oazapfts.fetchJson<{
-    status: 200;
-    data: number[];
-  }>("/api/years", {
-    ...opts,
-  });
 }

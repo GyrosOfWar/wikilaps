@@ -12,6 +12,7 @@ export default defineConfig({
     __APP_VERSION__: JSON.stringify(appVersion),
   },
   server: {
+    port: 13352,
     proxy: {
       "/api": "http://localhost:13252",
     },

@@ -23,7 +23,7 @@
     aria-label="Change language"
   >
     <span class="fi fi-{localeMeta[current].flag}"></span>
-    <span>{localeMeta[current].label}</span>
+    <span class="hidden sm:inline">{localeMeta[current].label}</span>
     <ChevronDownIcon class="h-4 w-4" />
   </Menu.Trigger>
   <Portal>
