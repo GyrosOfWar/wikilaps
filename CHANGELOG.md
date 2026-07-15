@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.2](https://github.com/GyrosOfWar/wikilaps/compare/v0.6.1...v0.6.2) (2026-07-15)
+
+
+### Bug Fixes
+
+* **session-page:** pagination was bad because we always returned the full number of rows ([f947acd](https://github.com/GyrosOfWar/wikilaps/commit/f947acdd229ca674cf0b9ea3f5a6948b2e5727d6))
+
 ## [0.6.1](https://github.com/GyrosOfWar/wikilaps/compare/v0.6.0...v0.6.1) (2026-07-15)
 
 
