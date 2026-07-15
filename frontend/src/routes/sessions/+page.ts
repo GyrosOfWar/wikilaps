@@ -18,5 +18,6 @@ export const load = async ({ fetch, url }) => {
     page,
     sort,
     year,
+    type: $type,
   };
 };

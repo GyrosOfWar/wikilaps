@@ -23,22 +23,25 @@
     class="border-b border-surface-200-800 bg-surface-50-950 h-(--header-height) flex items-center"
   >
     <div class="container mx-auto p-4 flex items-center justify-between gap-2">
-      <a href={resolve("/")} class="flex items-center gap-2.5">
+      <a href={resolve("/")} class="flex items-center gap-2.5 shrink-0">
         <span
           class="grid place-items-center size-9 rounded-lg preset-filled-primary-500 shadow-sm shadow-primary-500/30"
         >
           <FlagIcon class="size-5" />
         </span>
-        <span class="h4 font-bold tracking-tight">{m.app_name()}</span>
+        <span class="h4 font-bold tracking-tight hidden sm:inline">{m.app_name()}</span>
       </a>
-      <nav class="flex items-center gap-2">
+      <nav class="flex items-center gap-1 sm:gap-2">
         <a
           href={resolve("/races/2026")}
-          class="btn preset-tonal-surface hover:preset-tonal-primary"
+          class="btn btn-sm sm:btn-base preset-tonal-surface hover:preset-tonal-primary"
         >
           {m.nav_entry_races()}
         </a>
-        <a href={resolve("/sessions")} class="btn preset-tonal-surface hover:preset-tonal-primary">
+        <a
+          href={resolve("/sessions")}
+          class="btn btn-sm sm:btn-base preset-tonal-surface hover:preset-tonal-primary"
+        >
           {m.nav_entry_sessions()}
         </a>
         <LanguageSwitcher />
