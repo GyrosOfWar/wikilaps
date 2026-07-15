@@ -21,10 +21,6 @@ pub fn voting_allowed(start_time: Timestamp, session_type: SessionType) -> bool 
     distance.is_negative()
 }
 
-/// A race weekend is "upcoming" (and rendered as disabled) as long as none of
-/// its sessions have started yet. Deriving this from the session start times —
-/// rather than the weekend's start date — keeps it consistent with the
-/// per-session [`voting_allowed`] check, which also uses full timestamps.
 pub fn weekend_upcoming(now: Timestamp, session_start_times: &[Timestamp]) -> bool {
     session_start_times.iter().all(|&start| start > now)
 }

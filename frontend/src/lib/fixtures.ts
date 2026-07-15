@@ -34,10 +34,6 @@ export function makeWeekend(overrides: Partial<RaceWeekendResponse> = {}): RaceW
 
 const raceSessionTypes: SessionType[] = ["qualifying", "race"];
 
-/**
- * A weekend that has been scheduled but whose first session hasn't started yet:
- * `upcoming: true`, no votes, nothing votable. The UI renders it as disabled.
- */
 export const upcomingWeekend: RaceWeekendResponse = makeWeekend({
   id: 24,
   round: 2,
@@ -58,10 +54,6 @@ export const upcomingWeekend: RaceWeekendResponse = makeWeekend({
   ),
 });
 
-/**
- * A weekend whose race has finished and is open for voting, with some votes
- * already cast. Used for the "first votable session finished" scenario.
- */
 export const finishedRaceWeekend: RaceWeekendResponse = makeWeekend({
   id: 1,
   round: 1,
@@ -82,10 +74,6 @@ export const finishedRaceWeekend: RaceWeekendResponse = makeWeekend({
   ],
 });
 
-/**
- * The previous GP's race, as returned by `/weekends/latest` while a newer
- * weekend is scheduled but hasn't started. Shown on the landing page.
- */
 export const previousRaceWeekend: RaceWeekendResponse = makeWeekend({
   id: 1,
   round: 1,

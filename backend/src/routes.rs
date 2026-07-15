@@ -40,9 +40,6 @@ pub struct RaceWeekendResponse {
     pub round: i32,
     pub official_name: String,
     pub sessions: Vec<SessionResponse>,
-    /// True while none of the weekend's sessions have started yet — the UI
-    /// renders such weekends as disabled. Computed server-side so it stays
-    /// consistent with each session's `voting_allowed`.
     pub upcoming: bool,
 }
 
@@ -306,7 +303,7 @@ pub struct SessionListFilter {
 
 #[axum::debug_handler]
 #[utoipa::path(
-    path = "/api/race/sessions", 
+    path = "/api/race/sessions",
     params(PageParameters, SessionListFilter),
     method(get), responses(
         (status = OK, description = "Success", body = Page<SessionListResponse>)
