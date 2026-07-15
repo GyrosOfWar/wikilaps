@@ -67,6 +67,6 @@
   "session_sort_recent": "Neueste",
   "vote_summary_none": "Noch keine Stimmen",
   "seo_default_description": "Spoilerfreie Community-Bewertungen für Formel-1-Sessions. Stimme ab, ob sich ein Rennen in voller Länge, in 30 Minuten oder nur als Highlights lohnt.",
-  "seo_races_description": "Entdecke alle Formel-1-Rennwochenenden der Saison {year} und bewerte, wie sich jede Session anzuschauen lohnt.",
-  "seo_sessions_description": "Entdecke und bewerte jede Formel-1-Session, spoilerfrei."
+  "seo_races_description": "Entdecke Formel-1-Rennwochenenden der Saison {year} und bewerte, wie sich jede Session anzuschauen lohnt.",
+  "seo_sessions_description": "Entdecke und bewerte Formel-1-Sessions, spoilerfrei."
 }
