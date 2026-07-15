@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use utoipa::{IntoParams, ToSchema};
 
 #[derive(Deserialize, Debug, Clone, IntoParams)]
+#[into_params(parameter_in = Query)]
 pub struct PageParameters {
     pub page: Option<u32>,
     pub size: Option<u32>,
@@ -22,19 +23,23 @@ impl PageParameters {
     }
 
     pub fn limit(&self) -> i64 {
-        self.size.map(|s| s as i64).unwrap_or(Self::DEFAULT_SIZE)
+        self.size()
     }
 
     pub fn offset(&self) -> i64 {
-        self.page.unwrap_or(Self::DEFAULT_PAGE as u32) as i64 * self.limit()
+        (self.page() - 1) * self.limit()
     }
 
     pub fn size(&self) -> i64 {
         self.size.map(|s| s as i64).unwrap_or(Self::DEFAULT_SIZE)
     }
 
+    /// Pages are 1-based; anything lower is clamped so `offset` stays non-negative.
     pub fn page(&self) -> i64 {
-        self.page.map(|p| p as i64).unwrap_or(Self::DEFAULT_PAGE)
+        self.page
+            .map(|p| p as i64)
+            .unwrap_or(Self::DEFAULT_PAGE)
+            .max(Self::DEFAULT_PAGE)
     }
 }
 
@@ -53,8 +58,8 @@ impl<T> Page<T> {
         Page {
             content: vec![],
             total_items: 0,
-            page_number: 0,
-            page_size: 0,
+            page_number: PageParameters::DEFAULT_PAGE as u32,
+            page_size: PageParameters::DEFAULT_SIZE as u32,
             total_pages: 0,
         }
     }
@@ -62,8 +67,8 @@ impl<T> Page<T> {
 
 impl<T> Page<T> {
     pub fn new(content: Vec<T>, total_size: u32, page: PageParameters) -> Self {
-        let page_number = page.page.unwrap_or(PageParameters::DEFAULT_PAGE as u32);
-        let page_size = page.size.unwrap_or(PageParameters::DEFAULT_SIZE as u32);
+        let page_number = page.page() as u32;
+        let page_size = page.size() as u32;
         let total_pages = (total_size as f64 / page_size as f64).ceil() as u32;
 
         Page {
@@ -86,5 +91,34 @@ impl<T> Page<T> {
             page_size: self.page_size,
             total_pages: self.total_pages,
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::PageParameters;
+
+    #[test]
+    fn first_page_starts_at_offset_zero() {
+        assert_eq!(PageParameters::new(1, 20).offset(), 0);
+        assert_eq!(PageParameters::new(2, 20).offset(), 20);
+        assert_eq!(PageParameters::new(3, 15).offset(), 30);
+    }
+
+    #[test]
+    fn defaults_to_the_first_page() {
+        let params = PageParameters {
+            page: None,
+            size: None,
+            sort: None,
+        };
+        assert_eq!(params.page(), 1);
+        assert_eq!(params.offset(), 0);
+    }
+
+    #[test]
+    fn clamps_pages_below_one() {
+        assert_eq!(PageParameters::new(0, 20).page(), 1);
+        assert_eq!(PageParameters::new(0, 20).offset(), 0);
     }
 }

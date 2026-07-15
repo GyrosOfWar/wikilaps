@@ -1,14 +1,25 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
-  import { resolve } from "$app/paths";
+  import { page as currentPage } from "$app/state";
   import Seo from "$lib/components/Seo.svelte";
   import { formatDate } from "$lib/date-time.js";
   import { grandPrixName, sessionTypeLabel } from "$lib/i18n.js";
   import * as m from "$lib/paraglide/messages";
+  import { withSearchParams, type SearchParamValue } from "$lib/url.js";
   import { ArrowLeftIcon, ArrowRightIcon } from "@lucide/svelte";
   import { Pagination } from "@skeletonlabs/skeleton-svelte";
+  import { SegmentedControl } from "@skeletonlabs/skeleton-svelte";
 
   let { data } = $props();
+  let sort = $derived(data.sort);
+  let year = $derived(data.year);
+
+  // Filter changes reset to the first page; an explicit `page` in `updates` wins.
+  function navigate(updates: Record<string, SearchParamValue>) {
+    const query = withSearchParams(currentPage.url.searchParams, { page: null, ...updates });
+    // eslint-disable-next-line svelte/no-navigation-without-resolve
+    return goto("/sessions" + query, { keepFocus: true, noScroll: true });
+  }
 </script>
 
 <Seo title={m.session_page_heading()} description={m.seo_sessions_description()} />
@@ -17,6 +28,43 @@
   <h1 class="h2 font-bold tracking-tight">
     {m.session_page_heading()}
   </h1>
+
+  <SegmentedControl
+    class="self-start my-4"
+    value={sort}
+    onValueChange={(e) => navigate({ sort: e.value })}
+  >
+    <SegmentedControl.Label>Sort</SegmentedControl.Label>
+    <SegmentedControl.Control>
+      <SegmentedControl.Indicator />
+      <SegmentedControl.Item value="score">
+        <SegmentedControl.ItemText>Quality</SegmentedControl.ItemText>
+        <SegmentedControl.ItemHiddenInput />
+      </SegmentedControl.Item>
+      <SegmentedControl.Item value="start_date">
+        <SegmentedControl.ItemText>Most recent</SegmentedControl.ItemText>
+        <SegmentedControl.ItemHiddenInput />
+      </SegmentedControl.Item>
+    </SegmentedControl.Control>
+  </SegmentedControl>
+
+  <SegmentedControl
+    class="self-start my-4"
+    value={year?.toString()}
+    onValueChange={(e) => navigate({ year: e.value })}
+  >
+    <SegmentedControl.Label>Year</SegmentedControl.Label>
+    <SegmentedControl.Control>
+      <SegmentedControl.Indicator />
+      {#each data.allYears as year (year)}
+        <SegmentedControl.Item value={year.toString()}>
+          <SegmentedControl.ItemText>{year}</SegmentedControl.ItemText>
+
+          <SegmentedControl.ItemHiddenInput />
+        </SegmentedControl.Item>
+      {/each}
+    </SegmentedControl.Control>
+  </SegmentedControl>
 
   <section class="flex gap-4 flex-col">
     {#each data.sessions.content as session (session.id)}
@@ -45,7 +93,7 @@
     count={data.sessions.totalItems}
     pageSize={data.sessions.pageSize}
     page={data.sessions.pageNumber}
-    onPageChange={(event) => goto(resolve(`/sessions?page=${event.page}`))}
+    onPageChange={(event) => navigate({ page: event.page })}
   >
     <Pagination.PrevTrigger>
       <ArrowLeftIcon class="size-4" />

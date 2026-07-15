@@ -1,16 +1,22 @@
-import { getYearsOfData, listSessions } from "$lib/api.js";
+import { getYearsOfData, listSessions, type SessionType } from "$lib/api.js";
+import { optionalIntegerParameter, requiredIntegerParameter } from "$lib/url.js";
 
 export const load = async ({ fetch, url }) => {
-  const page = parseInt(url.searchParams.get("page") ?? "0", 10);
-  const sort = url.searchParams.get("sort");
-  const year = parseInt(url.searchParams.get("year") || "", 10) ?? null;
+  const p = url.searchParams;
+  const page = requiredIntegerParameter(p, "page", 1);
+  const sort = url.searchParams.get("sort") ?? "start_date";
+  const year = optionalIntegerParameter(p, "year");
+  const $type = (url.searchParams.get("type") ?? undefined) as SessionType | undefined;
   const [sessions, years] = await Promise.all([
-    listSessions(page, 20, sort, year, "race", { fetch }),
+    listSessions({ page, size: 20, sort, year, $type }, { fetch }),
     getYearsOfData({ fetch }),
   ]);
 
   return {
     allYears: years.data,
     sessions: sessions.data,
+    page,
+    sort,
+    year,
   };
 };

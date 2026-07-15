@@ -296,6 +296,7 @@ impl From<database::Session> for SessionListResponse {
 }
 
 #[derive(Deserialize, IntoParams, Debug)]
+#[into_params(parameter_in = Query)]
 pub struct SessionListFilter {
     pub year: Option<i32>,
 

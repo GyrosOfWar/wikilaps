@@ -66,19 +66,38 @@ export type VoteRequest = {
   vote: VoteType;
 };
 export function listSessions(
-  page: number | null,
-  size: number | null,
-  sort: string | null,
-  year: number | null,
-  $type: null | SessionType,
+  {
+    page,
+    size,
+    sort,
+    year,
+    $type,
+  }: {
+    page?: number;
+    size?: number;
+    sort?: string;
+    year?: number;
+    $type?: SessionType;
+  } = {},
   opts?: Oazapfts.RequestOpts,
 ) {
   return oazapfts.fetchJson<{
     status: 200;
     data: PageSessionListResponse;
-  }>("/api/race/sessions", {
-    ...opts,
-  });
+  }>(
+    `/api/race/sessions${QS.query(
+      QS.explode({
+        page,
+        size,
+        sort,
+        year,
+        type: $type,
+      }),
+    )}`,
+    {
+      ...opts,
+    },
+  );
 }
 export function getLatestWeekend(opts?: Oazapfts.RequestOpts) {
   return oazapfts.fetchJson<{
