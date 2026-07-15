@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/GyrosOfWar/wikilaps/compare/v0.5.2...v0.6.0) (2026-07-15)
+
+
+### Features
+
+* session list page ([#14](https://github.com/GyrosOfWar/wikilaps/issues/14)) ([feb43f6](https://github.com/GyrosOfWar/wikilaps/commit/feb43f65b5ec2282b150c8950f4c614cd1a7a7bb))
+
 ## [0.5.2](https://github.com/GyrosOfWar/wikilaps/compare/v0.5.1...v0.5.2) (2026-07-12)
 
 
