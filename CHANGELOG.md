@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.1](https://github.com/GyrosOfWar/wikilaps/compare/v0.6.0...v0.6.1) (2026-07-15)
+
+
+### Bug Fixes
+
+* incorrect text for site descriptions ([aef123f](https://github.com/GyrosOfWar/wikilaps/commit/aef123fa65dd76d4ff0e7a237ce124931b1017c5))
+
 ## [0.6.0](https://github.com/GyrosOfWar/wikilaps/compare/v0.5.2...v0.6.0) (2026-07-15)
 
 
