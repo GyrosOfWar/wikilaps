@@ -341,10 +341,19 @@ impl Database {
         .fetch_all(&self.db)
         .await?;
 
-        let count = sqlx::query_scalar!("SELECT count(*) FROM session")
-            .fetch_one(&self.db)
-            .await?
-            .unwrap_or_default();
+        let count = sqlx::query_scalar!(
+            r#"SELECT count(*) FROM session s
+            JOIN race_weekend rw ON s.weekend_id = rw.id
+            WHERE ($1::integer IS NULL OR rw.year = $1)
+                AND ($2::session_type IS NULL OR s.session_type = $2)
+                AND s.start_time < NOW()
+            "#,
+            filter.year,
+            filter.session_type as _,
+        )
+        .fetch_one(&self.db)
+        .await?
+        .unwrap_or_default();
 
         let sessions: Vec<_> = rows
             .into_iter()

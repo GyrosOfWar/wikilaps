@@ -8,7 +8,7 @@ export const load = async ({ fetch, url }) => {
   const year = optionalIntegerParameter(p, "year");
   const $type = (url.searchParams.get("type") ?? undefined) as SessionType | undefined;
   const [sessions, years] = await Promise.all([
-    listSessions({ page, size: 20, sort, year, $type }, { fetch }),
+    listSessions({ page, size: 30, sort, year, $type }, { fetch }),
     getYearsOfData({ fetch }),
   ]);
 

@@ -166,32 +166,34 @@
     {/each}
   </section>
 
-  <Pagination
-    class="self-center mt-4 max-w-full flex-wrap justify-center"
-    count={data.sessions.totalItems}
-    pageSize={data.sessions.pageSize}
-    page={data.sessions.pageNumber}
-    siblingCount={0}
-    onPageChange={(event) => navigate({ page: event.page })}
-  >
-    <Pagination.PrevTrigger>
-      <ArrowLeftIcon class="size-4" />
-    </Pagination.PrevTrigger>
-    <Pagination.Context>
-      {#snippet children(pagination)}
-        {#each pagination().pages as page, index (page)}
-          {#if page.type === "page"}
-            <Pagination.Item {...page}>
-              {page.value}
-            </Pagination.Item>
-          {:else}
-            <Pagination.Ellipsis {index}>&#8230;</Pagination.Ellipsis>
-          {/if}
-        {/each}
-      {/snippet}
-    </Pagination.Context>
-    <Pagination.NextTrigger>
-      <ArrowRightIcon class="size-4" />
-    </Pagination.NextTrigger>
-  </Pagination>
+  {#if data.sessions.totalPages > 1}
+    <Pagination
+      class="self-center mt-4 max-w-full flex-wrap justify-center"
+      count={data.sessions.totalItems}
+      pageSize={data.sessions.pageSize}
+      page={data.sessions.pageNumber}
+      siblingCount={0}
+      onPageChange={(event) => navigate({ page: event.page })}
+    >
+      <Pagination.PrevTrigger>
+        <ArrowLeftIcon class="size-4" />
+      </Pagination.PrevTrigger>
+      <Pagination.Context>
+        {#snippet children(pagination)}
+          {#each pagination().pages as page, index (page)}
+            {#if page.type === "page"}
+              <Pagination.Item {...page}>
+                {page.value}
+              </Pagination.Item>
+            {:else}
+              <Pagination.Ellipsis {index}>&#8230;</Pagination.Ellipsis>
+            {/if}
+          {/each}
+        {/snippet}
+      </Pagination.Context>
+      <Pagination.NextTrigger>
+        <ArrowRightIcon class="size-4" />
+      </Pagination.NextTrigger>
+    </Pagination>
+  {/if}
 </div>

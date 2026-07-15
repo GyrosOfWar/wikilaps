@@ -1,0 +1,36 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT count(*) FROM session s\n            JOIN race_weekend rw ON s.weekend_id = rw.id\n            WHERE ($1::integer IS NULL OR rw.year = $1)\n                AND ($2::session_type IS NULL OR s.session_type = $2)\n                AND s.start_time < NOW()\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "count",
+        "type_info": "Int8",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4",
+        {
+          "Custom": {
+            "name": "session_type",
+            "kind": {
+              "Enum": [
+                "sprint_qualifying",
+                "sprint_race",
+                "qualifying",
+                "race"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "bec0b53647361d44db5084af209a80e263aed670c18c1f00bc99c4f33b60f9ca"
+}
